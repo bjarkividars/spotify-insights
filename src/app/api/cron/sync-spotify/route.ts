@@ -4,7 +4,7 @@ import { syncAllUsers } from "@/server/spotify/sync-all";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 5 minutes max execution time
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   // Verify the request is authorized
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
