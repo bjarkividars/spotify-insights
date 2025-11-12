@@ -4,8 +4,6 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const { supabase, response } = createClient(request);
 
-  console.log("Request path:", request.nextUrl.pathname);
-
   // Allow access to /login, /logout, /auth/callback, and /api/cron without authentication
   if (
     request.nextUrl.pathname === "/login" ||

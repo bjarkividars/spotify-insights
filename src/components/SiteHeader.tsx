@@ -13,14 +13,7 @@ export function SiteHeader() {
   return (
     <div className="sticky top-0 z-50">
       <header
-        className="mb-8 pb-4 -mx-4 px-4 relative bg-background z-10
-                   after:pointer-events-none
-                   after:content-['']
-                   after:absolute after:inset-x-0
-                   after:-bottom-8 after:h-8
-                   after:bg-linear-to-b
-                   after:from-background
-                   after:to-transparent"
+        className="mb-8 pb-4 -mx-4 px-4 relative bg-background z-10 after:pointer-events-none after:content-[''] after:absolute after:inset-x-0 after:-bottom-8 after:h-8 after:bg-linear-to-b after:from-background after:to-transparent"
       >
         <div className="flex items-center justify-between">
           <div>
