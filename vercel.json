@@ -1,9 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/sync-spotify",
-      "schedule": "*/20 * * * *"
-    }
-  ]
-}
-
