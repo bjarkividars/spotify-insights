@@ -1,26 +1,124 @@
+/* stylelint-disable at-rule-no-unknown */
 @import "tailwindcss";
 
+@source "../**/*.{ts,tsx}";
+
+@theme {
+  /* Colors - using CSS variables for dynamic theming */
+  --color-background: hsl(var(--bg));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-border: hsl(var(--border));
+  --color-muted: hsl(var(--muted));
+  --color-secondary: hsl(var(--secondary));
+
+  --color-primary: hsl(var(--brand));
+  --color-primary-foreground: hsl(var(--brand-foreground));
+
+  --color-success: hsl(var(--success));
+  --color-warn: hsl(var(--warn));
+  --color-danger: hsl(var(--danger));
+
+  /* Border radius */
+  --radius-lg: calc(var(--radius));
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  /* Container */
+  --container-center: true;
+  --container-padding: 1rem;
+
+  /* Shadow */
+  --shadow-soft: 0 4px 20px rgba(0,0,0,.06);
+}
+
+/* Light theme tokens */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* brand */
+  --brand: 0 0% 78%;
+  --brand-foreground: 222 47% 11%;
+
+  /* gray scale */
+  --bg: 210 40% 98%;
+  --card: 0 0% 100%;
+  --muted: 215 16% 90%;
+  --border: 215 16% 82%;
+  --foreground: 222 47% 11%;
+  --secondary: 215 16% 96%;
+
+  /* success/warn/error (optional) */
+  --success: 142 71% 45%;
+  --warn: 38 92% 50%;
+  --danger: 0 84% 60%;
+
+  /* radii (base = 12px) */
+  --radius: 12px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Dark theme (if you use class-based dark mode) */
+.dark {
+  --bg: 224 71% 4%;
+  --card: 222 47% 7%;
+  --muted: 215 14% 20%;
+  --border: 215 14% 28%;
+  --foreground: 210 40% 98%;
+  --secondary: 222 47% 12%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base resets + typography tone */
+@layer base {
+  html { color-scheme: light; }
+  :root { --font-sans: ui-sans-serif, system-ui, -apple-system, "Inter", "SF Pro", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+
+  /* Set default rounded scale via variables */
+  * { border-color: hsl(var(--border)); }
+}
+
+/* Reusable components */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2
+      rounded-2xl px-4 py-2 text-sm font-medium
+      transition-colors duration-200 cursor-pointer
+      disabled:opacity-60 disabled:pointer-events-none disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+      rounded-2xl px-4 py-2 text-sm font-medium
+      transition-colors duration-200 cursor-pointer
+      disabled:opacity-60 disabled:pointer-events-none disabled:cursor-not-allowed
+      bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+      rounded-2xl px-4 py-2 text-sm font-medium
+      transition-colors duration-200 cursor-pointer
+      disabled:opacity-60 disabled:pointer-events-none disabled:cursor-not-allowed
+      bg-secondary text-foreground hover:bg-secondary/80;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+      rounded-2xl px-4 py-2 text-sm font-medium
+      transition-colors duration-200 cursor-pointer
+      disabled:opacity-60 disabled:pointer-events-none disabled:cursor-not-allowed
+      bg-transparent hover:bg-secondary;
+  }
+
+  .card {
+    @apply rounded-2xl bg-card p-5 shadow-sm border;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs bg-secondary;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Utilities mapping CSS variables -> Tailwind theme tokens */
+@layer utilities {
+  .shadow-soft { box-shadow: 0 4px 20px rgba(0,0,0,.06); }
 }
