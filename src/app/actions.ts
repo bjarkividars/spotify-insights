@@ -23,3 +23,12 @@ export async function getTopArtists(limit = 10): Promise<TopArtist[]> {
 
     return await getTopArtistsData(user.id, limit);
 }
+
+export async function getTopArtistsPage(limit = 20, offset = 0): Promise<{ artists: TopArtist[] }> {
+    const supabase = await createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw new Error("Not authenticated");
+
+    const artists = await getTopArtistsData(user.id, limit, offset);
+    return { artists };
+}

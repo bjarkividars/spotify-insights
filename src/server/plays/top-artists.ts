@@ -12,7 +12,7 @@ export type TopArtist = {
   gradientEnd: string | null; // hex color for gradient end (darker)
 };
 
-export async function getTopArtistsData(userId: string, limit = 10): Promise<TopArtist[]> {
+export async function getTopArtistsData(userId: string, limit = 10, offset = 0): Promise<TopArtist[]> {
   const supabase = await createClient();
 
   // Query to get all plays with artist info for the user
@@ -37,11 +37,11 @@ export async function getTopArtistsData(userId: string, limit = 10): Promise<Top
 
   // Count plays per artist
   const artistPlayCounts = new Map<string, { name: string; count: number; image: string | null; status: string | null }>();
-  
+
   for (const play of data) {
     const artist = play.tracks.artists;
     const existing = artistPlayCounts.get(artist.id);
-    
+
     if (existing) {
       existing.count++;
     } else {
@@ -54,10 +54,10 @@ export async function getTopArtistsData(userId: string, limit = 10): Promise<Top
     }
   }
 
-  // Sort by count and take top N
+  // Sort by count and take top N with pagination
   const sorted = Array.from(artistPlayCounts.entries())
     .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, limit);
+    .slice(offset, offset + limit);
 
   // Check for artists needing hydration
   const artistsToHydrate = sorted

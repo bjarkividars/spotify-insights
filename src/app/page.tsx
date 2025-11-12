@@ -4,28 +4,18 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function Home() {
-  const topArtists = await getTopArtists(50);
+  const topArtists = await getTopArtists(20);
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <header className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">
-                Spotify Payout
-              </h1>
-              <p className="text-foreground/60">
-                Your listening insights and estimated payouts
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <Link href="/plays" className="btn-primary">
-                View History
-              </Link>
-            </div>
+        <header className="mb-12 flex items-center justify-end">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link href="/plays" className="btn-primary">
+              View History
+            </Link>
           </div>
         </header>
 

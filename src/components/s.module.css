@@ -31,6 +31,7 @@
     /* fallback + fancy backdrop */
     background: hsl(var(--background) / 0.9);
     backdrop-filter: blur(4px);
+    box-shadow: var(--shadow-soft);
     z-index: 20;
   
     opacity: 0;
