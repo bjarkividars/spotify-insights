@@ -1,0 +1,18 @@
+name: Cron - Sync Spotify
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"  # every 20 minutes (UTC)
+  workflow_dispatch:        # lets you run it manually too
+
+jobs:
+  call-endpoint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hit Next.js cron endpoint
+        run: |
+          curl -sS -X POST \
+            -H "X-Cron-Secret: $CRON_SECRET" \
+            https://spotify-insights-kappa.vercel.app/api/cron/sync-spotify
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
