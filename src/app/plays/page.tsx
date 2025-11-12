@@ -1,4 +1,4 @@
-import { getUserPlays } from "@/app/actions";
+import { getUserPlays } from "./actions";
 import { PlayCard } from "@/components/PlayCard";
 import Link from "next/link";
 
@@ -6,23 +6,34 @@ export default async function PlaysPage() {
   const plays = await getUserPlays(50);
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
+    <div className="min-h-screen bg-background pb-12 px-4">
       <div className="mx-auto max-w-4xl">
-        <header className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">
-                Listening History
-              </h1>
-              <p className="text-foreground/60">
-                Your {plays.length} most recent plays
-              </p>
+        <div className="sticky top-0">
+          <header
+            className="mb-8 pb-4 -mx-4 px-4 relative bg-background z-10
+                        after:pointer-events-none
+                        after:content-['']
+                        after:absolute after:inset-x-0
+                        after:-bottom-8 after:h-8
+                        after:bg-linear-to-b
+                        after:from-background
+                        after:to-transparent"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-foreground mb-2 mt-12">
+                  Listening History
+                </h1>
+                <p className="text-foreground/60">
+                  Your {plays.length} most recent plays
+                </p>
+              </div>
+              <Link href="/" className="btn-ghost">
+                ← Home
+              </Link>
             </div>
-            <Link href="/" className="btn-ghost">
-              ← Home
-            </Link>
-          </div>
-        </header>
+          </header>
+        </div>
 
         {plays.length === 0 ? (
           <div className="card text-center py-12">
@@ -48,5 +59,3 @@ export default async function PlaysPage() {
     </div>
   );
 }
-
-
