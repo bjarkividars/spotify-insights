@@ -47,6 +47,8 @@ export async function handleSpotifyAuth() {
         });
     }
 
+    console.log("Origin:", origin);
+
     // Initiate Spotify OAuth flow
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "spotify",

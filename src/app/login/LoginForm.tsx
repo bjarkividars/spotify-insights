@@ -34,10 +34,6 @@ export function LoginForm({ isReturningVisitor }: LoginFormProps) {
           {isPending ? "Connecting..." : isReturningVisitor ? "Log in with Spotify" : "Sign up with Spotify"}
         </button>
       </form>
-
-      <p className="text-xs text-center text-foreground/60">
-        By continuing, you agree to our Terms of Service and Privacy Policy
-      </p>
     </div>
   );
 }

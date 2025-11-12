@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArtistBarChart } from "./ArtistBarChart";
+import { MobileArtistBlock } from "./MobileArtistBlock";
 import { getTopArtistsPage } from "@/app/actions";
 
 type Artist = {
@@ -26,8 +27,12 @@ export function ArtistVisualization({
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialArtists.length >= 20);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const mobileSentinelRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const maxPlayCount = artists.length > 0 ? artists[0].play_count : 1;
+  const maxPayout = artists.length > 0 
+    ? Math.max(...artists.map((a) => a.estimated_payout))
+    : 1;
 
   // Load more artists when sentinel is visible
   const loadMore = useCallback(async () => {
@@ -60,11 +65,11 @@ export function ArtistVisualization({
     }
   }, [isLoading, hasMore, offset]);
 
-  // IntersectionObserver for sentinel
+  // IntersectionObserver for desktop sentinel (horizontal scroll)
   useEffect(() => {
     const sentinel = sentinelRef.current;
     const container = scrollContainerRef.current;
-    if (!sentinel || !container) return;
+    if (!sentinel || !container || !hasMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -74,7 +79,32 @@ export function ArtistVisualization({
       },
       {
         root: container,
-        rootMargin: "200px", // Start loading when sentinel is 200px away
+        rootMargin: "200px",
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, isLoading, loadMore]);
+
+  // IntersectionObserver for mobile sentinel (vertical scroll)
+  useEffect(() => {
+    const sentinel = mobileSentinelRef.current;
+    if (!sentinel || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoading) {
+          loadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "400px",
         threshold: 0.1,
       }
     );
@@ -91,9 +121,6 @@ export function ArtistVisualization({
       {/* View Toggle */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            Top Artists by Plays
-          </h2>
           <p className="text-sm text-foreground/60">
             Your most listened to artists and their estimated payouts from your
             streams
@@ -101,8 +128,38 @@ export function ArtistVisualization({
         </div>
       </div>
 
-      {/* Bar Chart View */}
-      <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
+      {/* Mobile: Vertical blocks */}
+      <div className="sm:hidden space-y-4">
+        {artists.map((artist, index: number) => (
+          <MobileArtistBlock
+            key={artist.artist_id}
+            artistName={artist.artist_name}
+            artistId={artist.artist_id}
+            artistImage={artist.artist_image}
+            playCount={artist.play_count}
+            estimatedPayout={artist.estimated_payout}
+            maxPayout={maxPayout}
+            rank={index + 1}
+            gradientStart={artist.gradientStart}
+            gradientEnd={artist.gradientEnd}
+          />
+        ))}
+
+        {/* Ghost placeholders for mobile */}
+        {hasMore &&
+          Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={`mobile-ghost-${i}`}
+              className="w-full h-40 rounded-xl bg-muted/50 animate-pulse"
+            />
+          ))}
+
+        {/* Mobile sentinel */}
+        {hasMore && <div ref={mobileSentinelRef} className="h-1" />}
+      </div>
+
+      {/* Desktop: Horizontal bar chart */}
+      <div className="hidden sm:block relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
         <div
           ref={scrollContainerRef}
           className="overflow-x-auto pb-4 scrollbar-hide"
@@ -143,7 +200,7 @@ export function ArtistVisualization({
               </div>
             )}
 
-            {/* Sentinel element for intersection observer */}
+            {/* Desktop sentinel element for intersection observer */}
             {hasMore && <div ref={sentinelRef} className="w-1 h-1 shrink-0" />}
           </div>
         </div>

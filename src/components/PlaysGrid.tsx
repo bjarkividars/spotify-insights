@@ -27,8 +27,12 @@ export function PlaysGrid({ initialPlays }: PlaysGridProps) {
       } else {
         // Deduplicate by (track.id, played_at)
         setPlays((prev) => {
-          const existingKeys = new Set(prev.map((p) => `${p.track.id}:${p.played_at}`));
-          const uniqueNew = next.filter((p) => !existingKeys.has(`${p.track.id}:${p.played_at}`));
+          const existingKeys = new Set(
+            prev.map((p) => `${p.track.id}:${p.played_at}`)
+          );
+          const uniqueNew = next.filter(
+            (p) => !existingKeys.has(`${p.track.id}:${p.played_at}`)
+          );
           return [...prev, ...uniqueNew];
         });
         setOffset((prev) => prev + next.length);
@@ -63,6 +67,8 @@ export function PlaysGrid({ initialPlays }: PlaysGridProps) {
     return () => observer.disconnect();
   }, [loadMore, isLoading]);
 
+  const ghostVis = ["block", "hidden sm:flex", "hidden xl:flex"];
+
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -77,9 +83,13 @@ export function PlaysGrid({ initialPlays }: PlaysGridProps) {
         ))}
 
         {/* Ghost placeholders when loading or hasMore to hint continuation */}
+
         {hasMore &&
-          Array.from({ length: 6 }).map((_, i) => (
-            <div key={`ghost-${i}`} className="card flex items-center gap-4 p-4 animate-pulse">
+          ghostVis.map((vis, i) => (
+            <div
+              key={`ghost-${i}`}
+              className={`${vis} card items-center gap-4 p-4 animate-pulse`}
+            >
               <div className="w-16 h-16 rounded-lg bg-muted shrink-0" />
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="h-4 bg-muted rounded w-2/3" />
@@ -95,5 +105,3 @@ export function PlaysGrid({ initialPlays }: PlaysGridProps) {
     </>
   );
 }
-
-

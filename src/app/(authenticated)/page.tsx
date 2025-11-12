@@ -1,25 +1,12 @@
-import { getTopArtists } from "./actions";
+import { getTopArtists } from "../actions";
 import { ArtistVisualization } from "@/components/ArtistVisualization";
-import Link from "next/link";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function Home() {
   const topArtists = await getTopArtists(20);
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <header className="mb-12 flex items-center justify-end">
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Link href="/plays" className="btn-primary">
-              View History
-            </Link>
-          </div>
-        </header>
-
-        {/* Top Artists Section */}
+    <>
+      {/* Top Artists Section */}
         {topArtists.length > 0 ? (
           <section className="mb-8">
             <ArtistVisualization artists={topArtists} />
@@ -50,7 +37,6 @@ export default async function Home() {
             </p>
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 }
