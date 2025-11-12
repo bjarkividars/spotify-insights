@@ -1,6 +1,7 @@
 import { getUserPlays } from "./actions";
 import { PlayCard } from "@/components/PlayCard";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function PlaysPage() {
   const plays = await getUserPlays(50);
@@ -28,9 +29,12 @@ export default async function PlaysPage() {
                   Your {plays.length} most recent plays
                 </p>
               </div>
-              <Link href="/" className="btn-ghost">
-                ← Home
-              </Link>
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
+                <Link href="/" className="btn-ghost">
+                  ← Home
+                </Link>
+              </div>
             </div>
           </header>
         </div>

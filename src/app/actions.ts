@@ -2,8 +2,6 @@
 
 import { withSpotifyApiRefresh } from "@/utils/auth";
 import { createClient } from "@/utils/supabase/server";
-import { hydrateArtistsByIdsUsingUser } from "@/server/spotify/hydrate";
-import { fetchUserPlaysWithJoins } from "@/server/plays/db";
 import { getTopArtistsData, type TopArtist } from "@/server/plays/top-artists";
 
 export async function getSpotifyData() {

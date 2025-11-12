@@ -28,7 +28,13 @@ import { redirect } from "next/navigation";
 export async function handleSpotifyAuth() {
     const cookieStore = await cookies();
     const supabase = await createClient();
-    const origin = (await headers()).get("origin") || "http://localhost:3000";
+    
+    // Use localhost:3000 in development, actual origin in production
+    const isDevelopment = process.env.NODE_ENV === "development";
+    const headerOrigin = (await headers()).get("origin");
+    const origin = isDevelopment 
+        ? "http://localhost:3000" 
+        : (headerOrigin || "http://localhost:3000");
 
     // Set the returning visitor cookie
     const hasVisited = cookieStore.get("has_visited");

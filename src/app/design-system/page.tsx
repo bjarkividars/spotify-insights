@@ -1,10 +1,25 @@
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 export default function DesignSystemPage() {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="mx-auto max-w-6xl">
         <header className="mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Design System</h1>
-          <p className="text-foreground/70">A showcase of all design tokens and components</p>
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-bold text-foreground mb-2">Design System</h1>
+              <p className="text-foreground/70">A showcase of all design tokens and components</p>
+            </div>
+            <div>
+              <p className="text-xs text-foreground/60 mb-2 text-right">Theme</p>
+              <ThemeToggle />
+            </div>
+          </div>
+          <div className="card bg-primary/10 border-primary/20">
+            <p className="text-sm text-foreground">
+              💡 <strong>Tip:</strong> Toggle between light, system, and dark themes to see how all components adapt!
+            </p>
+          </div>
         </header>
 
         {/* Colors */}

@@ -34,40 +34,55 @@
 
 /* Light theme tokens */
 :root {
-  /* brand */
-  --brand: 0 0% 78%;
-  --brand-foreground: 222 47% 11%;
+  /* brand - neutral metallic */
+  --brand: 0 0% 20%;
+  --brand-foreground: 0 0% 98%;
 
-  /* gray scale */
-  --bg: 210 40% 98%;
+  /* gray scale - metallic gradients */
+  --bg: 0 0% 98%;
   --card: 0 0% 100%;
-  --muted: 215 16% 90%;
-  --border: 215 16% 82%;
-  --foreground: 222 47% 11%;
-  --secondary: 215 16% 96%;
+  --muted: 0 0% 96%;
+  --border: 0 0% 88%;
+  --foreground: 0 0% 10%;
+  --secondary: 0 0% 97%;
 
-  /* success/warn/error (optional) */
-  --success: 142 71% 45%;
-  --warn: 38 92% 50%;
-  --danger: 0 84% 60%;
+  /* semantic colors - muted */
+  --success: 142 50% 45%;
+  --warn: 38 80% 55%;
+  --danger: 0 65% 55%;
 
-  /* radii (base = 12px) */
-  --radius: 12px;
+  /* radii (base = 16px - heavily rounded) */
+  --radius: 16px;
 }
 
-/* Dark theme (if you use class-based dark mode) */
+/* Dark theme */
 .dark {
-  --bg: 224 71% 4%;
-  --card: 222 47% 7%;
-  --muted: 215 14% 20%;
-  --border: 215 14% 28%;
-  --foreground: 210 40% 98%;
-  --secondary: 222 47% 12%;
+  /* brand - lighter metallic for dark mode */
+  --brand: 0 0% 90%;
+  --brand-foreground: 0 0% 10%;
+
+  /* gray scale - metallic dark */
+  --bg: 0 0% 8%;
+  --card: 0 0% 10%;
+  --muted: 0 0% 14%;
+  --border: 0 0% 18%;
+  --foreground: 0 0% 98%;
+  --secondary: 0 0% 12%;
+
+  /* semantic colors - same as light */
+  --success: 142 50% 45%;
+  --warn: 38 80% 55%;
+  --danger: 0 65% 55%;
 }
 
 /* Base resets + typography tone */
 @layer base {
-  html { color-scheme: light; }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
   :root { --font-sans: ui-sans-serif, system-ui, -apple-system, "Inter", "SF Pro", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
 
   body {
@@ -85,40 +100,49 @@
     @apply inline-flex items-center justify-center gap-2
       rounded-2xl px-4 py-2 text-sm font-medium
       transition-colors duration-200 cursor-pointer
-      disabled:opacity-60 disabled:pointer-events-none disabled:cursor-not-allowed;
+      disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed;
   }
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2
       rounded-2xl px-4 py-2 text-sm font-medium
       transition-colors duration-200 cursor-pointer
-      disabled:opacity-60 disabled:pointer-events-none disabled:cursor-not-allowed
+      disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed
       bg-primary text-primary-foreground hover:bg-primary/90;
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2
       rounded-2xl px-4 py-2 text-sm font-medium
       transition-colors duration-200 cursor-pointer
-      disabled:opacity-60 disabled:pointer-events-none disabled:cursor-not-allowed
-      bg-secondary text-foreground hover:bg-secondary/80;
+      disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed
+      border border-border bg-card text-foreground hover:bg-muted;
   }
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2
       rounded-2xl px-4 py-2 text-sm font-medium
       transition-colors duration-200 cursor-pointer
-      disabled:opacity-60 disabled:pointer-events-none disabled:cursor-not-allowed
-      bg-transparent hover:bg-secondary;
+      disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed
+      bg-transparent text-foreground/70 hover:text-foreground hover:bg-muted;
   }
 
   .card {
-    @apply rounded-2xl bg-card p-5 shadow-sm border;
+    @apply rounded-2xl bg-card p-6 border border-border;
   }
 
   .chip {
-    @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs bg-secondary;
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-muted border border-border;
   }
 }
 
 /* Utilities mapping CSS variables -> Tailwind theme tokens */
 @layer utilities {
   .shadow-soft { box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+  
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera */
+  }
 }

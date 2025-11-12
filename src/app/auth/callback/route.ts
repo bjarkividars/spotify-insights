@@ -36,6 +36,24 @@ export async function GET(request: Request) {
                 }
             }
 
+            // Check if this is a new user (no plays yet)
+            try {
+                const { data: existingPlays, error: playsError } = await supabase
+                    .from('plays')
+                    .select('played_at')
+                    .eq('user_id', data.session.user.id)
+                    .limit(1);
+
+                if (!playsError && (!existingPlays || existingPlays.length === 0)) {
+                    // New user - redirect to syncing page for initial data load
+                    console.log(`[Auth Callback] New user detected, redirecting to syncing page`);
+                    return NextResponse.redirect(`${origin}/syncing`);
+                }
+            } catch (checkError) {
+                console.error('[Auth Callback] Error checking for existing plays:', checkError);
+                // Continue to normal redirect if check fails
+            }
+
             return NextResponse.redirect(`${origin}${next}`);
         }
     }

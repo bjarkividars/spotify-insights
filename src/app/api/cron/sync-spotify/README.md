@@ -60,6 +60,14 @@ Ensure these are set:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NEXT_PUBLIC_SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
+- `CRON_SECRET` - A secure random string to authenticate cron requests
+
+Generate a secure secret:
+
+```bash
+# Generate a random secret
+openssl rand -base64 32
+```
 
 ### 2. Vercel Cron Configuration
 
@@ -70,21 +78,26 @@ Add to `vercel.json`:
   "crons": [
     {
       "path": "/api/cron/sync-spotify",
-      "schedule": "*/15 * * * *"
+      "schedule": "*/30 * * * *"
     }
   ]
 }
 ```
 
-This runs every 15 minutes.
+This runs every 30 minutes.
+
+**Important**: In Vercel's project settings, set the `CRON_SECRET` environment variable. Vercel automatically passes this as the `x-vercel-cron-secret` header.
 
 ### 3. Alternative: External Cron
 
-Use any cron service (e.g., cron-job.org, GitHub Actions) to call:
+Use any cron service (e.g., cron-job.org, GitHub Actions) with authorization:
 
 ```bash
-curl https://your-domain.com/api/cron/sync-spotify
+curl -H "Authorization: Bearer YOUR_CRON_SECRET" \
+  https://your-domain.com/api/cron/sync-spotify
 ```
+
+Replace `YOUR_CRON_SECRET` with the value from your `CRON_SECRET` environment variable.
 
 ## Token Refresh
 
@@ -126,16 +139,20 @@ Common errors:
 
 ## Testing
 
-Test manually:
+Test locally with authorization:
 
 ```bash
-curl http://localhost:3000/api/cron/sync-spotify
+# Set CRON_SECRET in your .env.local first
+curl -H "Authorization: Bearer your-local-secret" \
+  http://localhost:3000/api/cron/sync-spotify
 ```
 
 Or use the Vercel CLI:
 
 ```bash
 vercel dev
-# Then visit http://localhost:3000/api/cron/sync-spotify
+# Then call with authorization header
+curl -H "Authorization: Bearer your-local-secret" \
+  http://localhost:3000/api/cron/sync-spotify
 ```
 
