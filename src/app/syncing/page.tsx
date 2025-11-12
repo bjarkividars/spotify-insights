@@ -58,7 +58,7 @@ export default function SyncingPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-[100dvh] bg-background flex items-center justify-center px-4">
       <div className="card max-w-md w-full text-center py-12">
         {status === "syncing" && (
           <>

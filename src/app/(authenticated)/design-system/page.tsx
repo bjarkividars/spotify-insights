@@ -2,7 +2,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function DesignSystemPage() {
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
+    <div className="min-h-[100dvh] bg-background py-12 px-4">
       <div className="mx-auto max-w-6xl">
         <header className="mb-12">
           <div className="flex items-start justify-between mb-6">

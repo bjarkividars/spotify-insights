@@ -11,7 +11,7 @@ export default async function LoginPage() {
   const isReturningVisitor = await checkReturningVisitor();
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-[100dvh] bg-background flex items-center justify-center px-4">
       <div className="card max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
