@@ -11,7 +11,7 @@ export function PlayCard({ trackName, artistName, artistImage, playedAt }: PlayC
   const timeAgo = formatTimeAgo(playedAt);
 
   return (
-    <div className="card flex items-center gap-4">
+    <div className="card flex items-center gap-4 p-4">
       <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted shrink-0">
         {artistImage ? (
           <Image

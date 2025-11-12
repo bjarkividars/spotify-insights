@@ -1,14 +1,15 @@
 import { getUserPlays } from "./actions";
-import { PlayCard } from "@/components/PlayCard";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ArrowLeftIcon } from "lucide-react";
+import { PlaysGrid } from "@/components/PlaysGrid";
 
 export default async function PlaysPage() {
-  const plays = await getUserPlays(50);
+  const plays = await getUserPlays(30);
 
   return (
     <div className="min-h-screen bg-background pb-12 px-4">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-7xl">
         <div className="sticky top-0">
           <header
             className="mb-8 pb-4 -mx-4 px-4 relative bg-background z-10
@@ -25,14 +26,13 @@ export default async function PlaysPage() {
                 <h1 className="text-4xl font-bold text-foreground mb-2 mt-12">
                   Listening History
                 </h1>
-                <p className="text-foreground/60">
-                  Your {plays.length} most recent plays
-                </p>
+                <p className="text-foreground/60">Your most recent plays</p>
               </div>
               <div className="flex items-center gap-3">
                 <ThemeToggle />
-                <Link href="/" className="btn-ghost">
-                  ← Home
+                <Link href="/" className="btn-ghost flex items-center gap-2">
+                  <ArrowLeftIcon className="w-4 h-4" />
+                  Home
                 </Link>
               </div>
             </div>
@@ -47,17 +47,7 @@ export default async function PlaysPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {plays.map((play, idx) => (
-              <PlayCard
-                key={`${play.track.id}-${play.played_at}-${idx}`}
-                trackName={play.track.name}
-                artistName={play.track.artist.name}
-                artistImage={play.track.artist.image_url}
-                playedAt={play.played_at}
-              />
-            ))}
-          </div>
+          <PlaysGrid initialPlays={plays} />
         )}
       </div>
     </div>

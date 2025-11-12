@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 
-export async function fetchUserPlaysWithJoins(userId: string, limit = 50) {
+export async function fetchUserPlaysWithJoins(userId: string, limit = 50, offset = 0) {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -22,7 +22,7 @@ export async function fetchUserPlaysWithJoins(userId: string, limit = 50) {
     `)
     .eq("user_id", userId)
     .order("played_at", { ascending: false })
-    .limit(limit);
+    .range(offset, Math.max(offset, offset + limit - 1));
 
   if (error) {
     throw new Error(`Failed to fetch plays: ${error.message}`);
