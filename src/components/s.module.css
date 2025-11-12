@@ -1,0 +1,51 @@
+.container {
+    position: relative;
+    width: 100px;              /* your clamp */
+    height: 1.5rem;            /* matches line-height below */
+    overflow: visible;
+  }
+  
+  .clip {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.5rem;
+    text-align: center;
+  }
+  
+  .full {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    max-width: none;
+    line-height: 1.5rem;  
+    padding: 0 .25rem;
+    border-radius: .25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    /* fallback + fancy backdrop */
+    background: hsl(var(--background) / 0.9);
+    backdrop-filter: blur(4px);
+    z-index: 20;
+  
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+  }
+  
+  .container:hover .full,
+  .container:focus-within .full {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .container:hover .clip,
+  .container:focus-within .clip {
+    visibility: hidden; /* keeps space to avoid layout shift */
+  }
+  

@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { hydrateArtistsByIdsUsingUser } from "@/server/spotify/hydrate";
+import { extractColorsForArtists } from "@/utils/color-extraction";
 
 export type TopArtist = {
   artist_id: string;
@@ -7,6 +8,8 @@ export type TopArtist = {
   artist_image: string | null;
   play_count: number;
   estimated_payout: number; // in USD
+  gradientStart: string | null; // hex color for gradient start
+  gradientEnd: string | null; // hex color for gradient end (darker)
 };
 
 export async function getTopArtistsData(userId: string, limit = 10): Promise<TopArtist[]> {
@@ -58,8 +61,8 @@ export async function getTopArtistsData(userId: string, limit = 10): Promise<Top
 
   // Check for artists needing hydration
   const artistsToHydrate = sorted
-    .filter(([_, artistData]) => artistData.status === "partial")
-    .map(([id, _]) => id);
+    .filter(([, artistData]) => artistData.status === "partial")
+    .map(([id]) => id);
 
   let imageMap = new Map<string, string | null>();
   if (artistsToHydrate.length > 0) {
@@ -70,11 +73,25 @@ export async function getTopArtistsData(userId: string, limit = 10): Promise<Top
   // Calculate estimated payout (Spotify pays ~$0.004 per stream on average)
   const PAYOUT_PER_STREAM = 0.004;
 
-  return sorted.map(([artistId, artistData]) => ({
+  // Prepare artists for color extraction
+  const artistsForColorExtraction = sorted.map(([artistId, artistData]) => ({
     artist_id: artistId,
-    artist_name: artistData.name,
     artist_image: imageMap.get(artistId) ?? artistData.image,
-    play_count: artistData.count,
-    estimated_payout: artistData.count * PAYOUT_PER_STREAM,
   }));
+
+  // Extract gradient colors for artists with images
+  const colorMap = await extractColorsForArtists(artistsForColorExtraction);
+
+  return sorted.map(([artistId, artistData]) => {
+    const colors = colorMap.get(artistId);
+    return {
+      artist_id: artistId,
+      artist_name: artistData.name,
+      artist_image: imageMap.get(artistId) ?? artistData.image,
+      play_count: artistData.count,
+      estimated_payout: artistData.count * PAYOUT_PER_STREAM,
+      gradientStart: colors?.gradientStart ?? null,
+      gradientEnd: colors?.gradientEnd ?? null,
+    };
+  });
 }

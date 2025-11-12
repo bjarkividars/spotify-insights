@@ -1,11 +1,10 @@
 import { getTopArtists } from "./actions";
-import { ArtistBarChart } from "@/components/ArtistBarChart";
+import { ArtistVisualization } from "@/components/ArtistVisualization";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function Home() {
   const topArtists = await getTopArtists(50);
-  const maxPlayCount = topArtists.length > 0 ? topArtists[0].play_count : 1;
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
@@ -33,42 +32,7 @@ export default async function Home() {
         {/* Top Artists Section */}
         {topArtists.length > 0 ? (
           <section className="mb-8">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                Top Artists by Plays
-              </h2>
-              <p className="text-sm text-foreground/60">
-                Your most listened to artists and their estimated payouts from
-                your streams
-              </p>
-            </div>
-
-            {/* Horizontal scrollable container - full-bleed to viewport edges, aligned to content */}
-            <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
-              <div className="overflow-x-auto pb-4 scrollbar-hide">
-                <div
-                  className="
-                    flex gap-6 min-w-min
-                    pl-4 md:pl-6 lg:pl-8
-                    xl:pl-[calc((100vw-80rem)/2)]
-                    pr-4 md:pr-6 lg:pr-8
-                    xl:pr-[calc((100vw-80rem)/2)]
-                  "
-                >
-                  {topArtists.map((artist, index: number) => (
-                    <ArtistBarChart
-                      key={artist.artist_id}
-                      artistName={artist.artist_name}
-                      artistImage={artist.artist_image}
-                      playCount={artist.play_count}
-                      estimatedPayout={artist.estimated_payout}
-                      maxPlayCount={maxPlayCount}
-                      rank={index + 1}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
+            <ArtistVisualization artists={topArtists} />
 
             {/* Summary */}
             <div className="mt-6 pt-6 border-t border-border">
