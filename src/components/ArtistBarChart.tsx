@@ -97,7 +97,7 @@ export function ArtistBarChart({
                 adjustedColors ? "text-white/80" : "text-primary-foreground/80"
               }`}
             >
-              plays
+              {playCount > 1 ? "plays" : "play"}
             </div>
             <div
               className={`text-xs font-semibold mt-1 ${
@@ -105,7 +105,7 @@ export function ArtistBarChart({
               }`}
             >
               {estimatedPayout < 0.01
-                ? ">$0.01"
+                ? "<$0.01"
                 : `$${estimatedPayout.toFixed(2)}`}
             </div>
           </div>

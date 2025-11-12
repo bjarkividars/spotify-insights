@@ -103,7 +103,7 @@ function TreemapNode({ node, backgroundColor }: TreemapNodeProps) {
           <>
             <div className="text-white/80 text-xs">plays</div>
             <div className="text-white font-semibold text-sm mt-1">
-              {node.estimated_payout < 0.01 ? ">$0.01" : `$${node.estimated_payout.toFixed(2)}`}
+              {node.estimated_payout < 0.01 ? "<$0.01" : `$${node.estimated_payout.toFixed(2)}`}
             </div>
           </>
         )}

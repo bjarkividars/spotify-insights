@@ -87,10 +87,10 @@ export function MobileArtistBlock({
           <span className="text-white font-bold text-lg leading-none">
             {playCount}
           </span>
-          <span className="text-white/80 text-xs">plays</span>
+          <span className="text-white/80 text-xs">{playCount > 1 ? "plays" : "play"}</span>
         </div>
         <div className="text-white font-semibold text-sm mt-2 leading-none">
-          {estimatedPayout < 0.01 ? ">$0.01" : `$${estimatedPayout.toFixed(2)}`}
+          {estimatedPayout < 0.01 ? "<$0.01" : `$${estimatedPayout.toFixed(2)}`}
         </div>
       </div>
 
