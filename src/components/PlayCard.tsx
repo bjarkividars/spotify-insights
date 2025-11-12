@@ -1,17 +1,30 @@
+import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 
 type PlayCardProps = {
   trackName: string;
   artistName: string;
   artistImage: string | null;
+  trackId: string;
   playedAt: string;
 };
 
-export function PlayCard({ trackName, artistName, artistImage, playedAt }: PlayCardProps) {
+export function PlayCard({
+  trackName,
+  artistName,
+  artistImage,
+  trackId,
+  playedAt,
+}: PlayCardProps) {
   const timeAgo = formatTimeAgo(playedAt);
 
   return (
-    <div className="card flex items-center gap-4 p-4">
+    <a
+      href={`https://open.spotify.com/track/${trackId}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="card flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors group"
+    >
       <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted shrink-0">
         {artistImage ? (
           <Image
@@ -28,11 +41,14 @@ export function PlayCard({ trackName, artistName, artistImage, playedAt }: PlayC
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-foreground truncate">{trackName}</h3>
+        <div className="flex items-center gap-1">
+          <h3 className="font-medium text-foreground truncate">{trackName}</h3>
+          <ChevronRight className="w-4 h-4 hidden group-hover:block" />
+        </div>
         <p className="text-sm text-foreground/60 truncate">{artistName}</p>
         <p className="text-xs text-foreground/40 mt-1">{timeAgo}</p>
       </div>
-    </div>
+    </a>
   );
 }
 
@@ -51,5 +67,3 @@ function formatTimeAgo(timestamp: string): string {
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
-
-

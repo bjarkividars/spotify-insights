@@ -75,6 +75,7 @@ export function PlaysGrid({ initialPlays }: PlaysGridProps) {
         {plays.map((play, idx) => (
           <PlayCard
             key={`${play.track.id}-${play.played_at}-${idx}`}
+            trackId={play.track.id}
             trackName={play.track.name}
             artistName={play.track.artist.name}
             artistImage={play.track.artist.image_url}
