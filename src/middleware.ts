@@ -4,9 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const { supabase, response } = createClient(request);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  console.log("Request path:", request.nextUrl.pathname);
 
   // Allow access to /login, /logout, /auth/callback, and /api/cron without authentication
   if (
@@ -17,6 +15,10 @@ export async function middleware(request: NextRequest) {
   ) {
     return response;
   }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Redirect to login if not authenticated
   if (!user) {

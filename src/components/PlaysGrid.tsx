@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getUserPlaysPage } from "@/app/plays/actions";
+import { getUserPlaysPage } from "@/app/(authenticated)/plays/actions";
 import type { PlayWithDetails } from "@/types/plays";
 import { PlayCard } from "./PlayCard";
 
