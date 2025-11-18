@@ -76,7 +76,7 @@ export function ArtistBarChart({
   return (
     <div className="flex flex-col items-center gap-2 min-w-[100px]">
       {/* Bar */}
-      <div className="relative w-20 h-96 bg-muted rounded-t-xl flex flex-col justify-end overflow-hidden">
+      <div className="relative w-20 h-full bg-muted rounded-t-xl flex flex-col justify-end overflow-hidden">
         <div className={barClassName} style={gradientStyle}>
           {/* Rank badge */}
           <div className="absolute top-2 right-2 bg-background text-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold z-10">

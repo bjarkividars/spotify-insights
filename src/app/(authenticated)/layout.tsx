@@ -5,6 +5,10 @@ export default function AuthenticatedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <SiteShell>{children}</SiteShell>;
+  return (
+    <div className="h-full flex flex-col">
+      <SiteShell>{children}</SiteShell>
+    </div>
+  );
 }
 

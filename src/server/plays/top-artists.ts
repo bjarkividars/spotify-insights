@@ -12,6 +12,24 @@ export type TopArtist = {
   gradientEnd: string | null; // hex color for gradient end (darker)
 };
 
+// Calculate estimated payout (Spotify pays ~$0.004 per stream on average)
+const PAYOUT_PER_STREAM = 0.004;
+
+export async function getTotalEstimatedPayout(userId: string): Promise<number> {
+  const supabase = await createClient();
+
+  // Get total play count for the user
+  const { count, error } = await supabase
+    .from("plays")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  if (error) throw new Error(`Failed to fetch play count: ${error.message}`);
+  
+  const totalPlays = count ?? 0;
+  return totalPlays * PAYOUT_PER_STREAM;
+}
+
 export async function getTopArtistsData(userId: string, limit = 10, offset = 0): Promise<TopArtist[]> {
   const supabase = await createClient();
 
@@ -69,9 +87,6 @@ export async function getTopArtistsData(userId: string, limit = 10, offset = 0):
     const result = await hydrateArtistsByIdsUsingUser(userId, artistsToHydrate);
     imageMap = result.imageMap;
   }
-
-  // Calculate estimated payout (Spotify pays ~$0.004 per stream on average)
-  const PAYOUT_PER_STREAM = 0.004;
 
   // Prepare artists for color extraction
   const artistsForColorExtraction = sorted.map(([artistId, artistData]) => ({

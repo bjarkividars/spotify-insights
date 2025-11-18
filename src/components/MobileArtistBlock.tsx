@@ -73,7 +73,7 @@ export function MobileArtistBlock({
   return (
     <Link
       href={`https://open.spotify.com/artist/${artistId}`}
-      className="block w-full rounded-xl overflow-hidden relative group"
+      className="block w-full rounded-xl overflow-hidden relative group min-h-[110px]"
       style={backgroundStyle}
     >
       {/* Rank badge */}
