@@ -5,21 +5,31 @@ import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Home, ListMusic } from "lucide-react";
 
+const getTitle = (pathname: string) => {
+  if (pathname === "/plays") {
+    return "Listening History";
+  }
+  if (pathname === "/playlists") {
+    return "Playlists";
+  }
+  return null;
+};
+
 export function SiteHeader() {
   const pathname = usePathname();
   const isPlaysPage = pathname === "/plays";
-  const title = isPlaysPage ? "Listening History" : "Top Artists by Plays";
+  const title = getTitle(pathname);
 
   return (
     <div className="sticky top-0 z-50">
-      <header
-        className="mb-8 pb-4 -mx-4 px-4 relative bg-background z-10 after:pointer-events-none after:content-[''] after:absolute after:inset-x-0 after:-bottom-8 after:h-8 after:bg-linear-to-b after:from-background after:to-transparent"
-      >
-        <div className="flex items-center justify-between">
+      <header className="mb-8 pb-4 -mx-4 px-4 relative bg-background z-10 after:pointer-events-none after:content-[''] after:absolute after:inset-x-0 after:-bottom-8 after:h-8 after:bg-linear-to-b after:from-background after:to-transparent">
+        <div className="flex items-center justify-between min-h-[96px]">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 mt-12">
-              {title}
-            </h1>
+            {title && (
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 mt-12">
+                {title}
+              </h1>
+            )}
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
@@ -48,4 +58,3 @@ export function SiteHeader() {
     </div>
   );
 }
-

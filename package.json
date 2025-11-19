@@ -9,14 +9,18 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^2.0.36",
+    "@google/genai": "^1.30.0",
     "@spotify/web-api-ts-sdk": "^1.2.0",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.81.1",
+    "ai": "^5.0.95",
     "d3-hierarchy": "^3.1.2",
     "lucide-react": "^0.553.0",
     "next": "16.0.1",
     "node-vibrant": "^4.0.3",
+    "openai": "^6.9.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "tinycolor2": "^1.6.0"
