@@ -218,7 +218,7 @@ export default function GeneratePlaylistPage() {
               }
             }}
             className="flex-1 w-full resize-none bg-transparent px-4 py-2 text-base placeholder:text-foreground/60 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="Rediscover songs I haven't played in a while"
+            placeholder="What are the vibes you're feeling..."
             rows={1}
             disabled={isStreaming}
           />
@@ -246,7 +246,7 @@ export default function GeneratePlaylistPage() {
               key={suggestion}
               onClick={() => handleSuggestionClick(suggestion)}
               disabled={isStreaming}
-              className="group cursor-pointer text-sm text-foreground/70 hover:text-foreground hover:bg-muted/50 py-2 px-3 rounded-md transition-colors text-left border border-transparent hover:border-border flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group cursor-pointer text-sm text-foreground/70 hover:text-foreground hover:bg-muted/50 py-2 px-3 rounded-lg transition-colors text-left border border-transparent hover:border-border flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {suggestion}
               <ArrowRight className="w-4 h-4 ml-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />

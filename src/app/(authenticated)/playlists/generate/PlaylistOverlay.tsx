@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Music, Sparkles, X } from "lucide-react";
+import { ChevronRight, Loader2, Music, Sparkles, X } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 
@@ -45,7 +45,7 @@ export function PlaylistOverlay({
         </div>
 
         <div
-          className="relative w-full max-h-[64vh] fade-top fade-bottom"
+          className="relative w-full h-[64vh] fade-top fade-bottom"
           style={{ "--fade-size": "16px" } as CSSProperties}
         >
           <div className="grid gap-4 max-h-[64vh] overflow-y-auto pr-1 py-4">
@@ -56,12 +56,6 @@ export function PlaylistOverlay({
                 index={i}
               />
             ))}
-
-            {tracks.length === 0 && status !== "done" && (
-              <div className="text-center py-12 text-foreground/70 border border-dashed border-border rounded-xl">
-                Waiting for tracks to arrive...
-              </div>
-            )}
           </div>
         </div>
 
@@ -110,12 +104,20 @@ function AnimatedTrackRow({
     return () => clearTimeout(t);
   }, []);
 
+  const Wrapper: "a" | "div" = track.uri ? "a" : "div";
+
+  const baseClasses =
+    "flex items-center gap-4 p-3 rounded-lg bg-card border border-border hover:bg-muted/50 transition-all duration-500 ease-out group";
+
   return (
-    <div
-      className={`flex items-center gap-4 p-3 rounded-lg bg-card border border-border hover:bg-muted/50 transition-all duration-500 ease-out ${
+    <Wrapper
+      className={`${baseClasses} ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
       }`}
       style={{ transitionDelay: `${index * 35}ms` }}
+      {...(track.uri
+        ? { href: track.uri, target: "_blank", rel: "noreferrer" }
+        : {})}
     >
       <div className="w-12 h-12 bg-muted rounded flex items-center justify-center shrink-0 overflow-hidden">
         {track.image ? (
@@ -130,19 +132,14 @@ function AnimatedTrackRow({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium truncate">{track.name}</p>
+        <div className="flex items-center gap-1">
+          <p className="font-medium truncate">{track.name}</p>
+          {track.uri && (
+            <ChevronRight className="w-4 h-4 text-foreground/60 hidden group-hover:block" />
+          )}
+        </div>
         <p className="text-sm text-foreground/70 truncate">{track.artist}</p>
       </div>
-      {track.uri && (
-        <a
-          href={track.uri}
-          target="_blank"
-          rel="noreferrer"
-          className="text-sm text-primary hover:underline"
-        >
-          Open
-        </a>
-      )}
-    </div>
+    </Wrapper>
   );
 }
