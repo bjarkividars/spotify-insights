@@ -1,6 +1,9 @@
 import type { FunctionTool } from "openai/resources/responses/responses";
 
-import type { LastFmArtist, LastFmTrack } from "@/server/lastfm/client";
+import type {
+    LastFmArtist,
+    LastFmTrack,
+} from "@/server/lastfm/client";
 import { lastFm } from "@/server/lastfm/client";
 import type { TopArtist } from "@/server/plays/top-artists";
 import { getArtistHistory, getTrackHistory } from "@/server/plays/listening-history";
@@ -14,6 +17,7 @@ import type {
     MinimalTrack,
     PlaylistToolset,
     ToolExecutors,
+    ToolArgsMap,
     UserArtistsQueryArgs,
     UserTracksQueryArgs,
 } from "./types";
@@ -188,6 +192,127 @@ const TOOL_DEFINITIONS: FunctionTool[] = [
         },
         strict: false,
     },
+    {
+        type: "function",
+        name: "getArtistInfo",
+        description: "Fetch Last.fm biography + similar artists for a given artist.",
+        parameters: {
+            type: "object",
+            properties: {
+                artist: {
+                    type: "string",
+                    description: "Artist name to inspect.",
+                },
+            },
+            additionalProperties: false,
+            required: ["artist"],
+        },
+        strict: false,
+    },
+    {
+        type: "function",
+        name: "getArtistTopTags",
+        description: "Fetch frequently used tags for an artist.",
+        parameters: {
+            type: "object",
+            properties: {
+                artist: {
+                    type: "string",
+                    description: "Artist name.",
+                },
+                limit: {
+                    type: "integer",
+                    description: "How many tags to fetch (default 10).",
+                },
+            },
+            additionalProperties: false,
+            required: ["artist"],
+        },
+        strict: false,
+    },
+    {
+        type: "function",
+        name: "getTrackTopTags",
+        description: "Fetch frequently used tags for a track.",
+        parameters: {
+            type: "object",
+            properties: {
+                artist: {
+                    type: "string",
+                    description: "Track artist.",
+                },
+                track: {
+                    type: "string",
+                    description: "Track name.",
+                },
+                limit: {
+                    type: "integer",
+                    description: "How many tags to fetch (default 10).",
+                },
+            },
+            additionalProperties: false,
+            required: ["artist", "track"],
+        },
+        strict: false,
+    },
+    {
+        type: "function",
+        name: "getTagSimilarTags",
+        description: "Fetch neighboring Last.fm tags to widen genre discovery.",
+        parameters: {
+            type: "object",
+            properties: {
+                tag: {
+                    type: "string",
+                    description: "Seed tag/genre.",
+                },
+                limit: {
+                    type: "integer",
+                    description: "How many related tags to fetch (default 10).",
+                },
+            },
+            additionalProperties: false,
+            required: ["tag"],
+        },
+        strict: false,
+    },
+    {
+        type: "function",
+        name: "getTagTopArtists",
+        description: "Fetch top artists for a Last.fm tag / genre.",
+        parameters: {
+            type: "object",
+            properties: {
+                tag: {
+                    type: "string",
+                    description: "Tag or genre keyword.",
+                },
+                limit: {
+                    type: "integer",
+                    description: "Max number of artists (default 10).",
+                },
+            },
+            additionalProperties: false,
+            required: ["tag"],
+        },
+        strict: false,
+    },
+    {
+        type: "function",
+        name: "getGlobalTopTracks",
+        description: "Fetch current global top tracks per Last.fm charts.",
+        parameters: {
+            type: "object",
+            properties: {
+                limit: {
+                    type: "integer",
+                    description: "Max number of tracks (default 10).",
+                },
+            },
+            additionalProperties: false,
+        },
+        strict: false,
+    },
 ];
 
 const DEFAULT_LIMITS = {
@@ -198,6 +323,10 @@ const DEFAULT_LIMITS = {
     userTopArtists: 10,
     userArtistHistory: 10,
     userTrackHistory: 10,
+    artistTags: 10,
+    trackTags: 10,
+    tagTopArtists: 10,
+    globalTopTracks: 12,
 };
 
 type ToolsetOptions = {
@@ -312,6 +441,75 @@ export function createPlaylistToolset({
                 })),
             };
         },
+        async getArtistInfo({ artist }: ToolArgsMap["getArtistInfo"]) {
+            const info = await lastFm.getArtistInfo(artist);
+            return {
+                info: info?.bio?.summary ? stripHtml(info.bio.summary) : undefined,
+                similar:
+                    info?.similar?.artist?.map((entry) => ({
+                        name: entry.name,
+                        url: entry.url,
+                    })) ?? [],
+            };
+        },
+        async getArtistTopTags({
+            artist,
+            limit = DEFAULT_LIMITS.artistTags,
+        }: ToolArgsMap["getArtistTopTags"]) {
+            const tags = await lastFm.getArtistTopTags(artist, limit);
+            return {
+                tags: tags.slice(0, limit).map((tag) => ({
+                    name: tag.name,
+                    count: tag.count,
+                })),
+            };
+        },
+        async getTrackTopTags({
+            artist,
+            track,
+            limit = DEFAULT_LIMITS.trackTags,
+        }: ToolArgsMap["getTrackTopTags"]) {
+            const tags = await lastFm.getTrackTopTags(artist, track, limit);
+            return {
+                tags: tags.slice(0, limit).map((tag) => ({
+                    name: tag.name,
+                    count: tag.count,
+                })),
+            };
+        },
+        async getTagSimilarTags({
+            tag,
+            limit = DEFAULT_LIMITS.artistTags,
+        }: ToolArgsMap["getTagSimilarTags"]) {
+            const tags = await lastFm.getTagSimilarTags(tag, limit);
+            return {
+                tags: tags.slice(0, limit).map((entry) => ({
+                    name: entry.name,
+                })),
+            };
+        },
+        async getTagTopArtists({
+            tag,
+            limit = DEFAULT_LIMITS.tagTopArtists,
+        }: ToolArgsMap["getTagTopArtists"]) {
+            const artists = await lastFm.getTagTopArtists(tag, limit);
+            return {
+                artists: artists.slice(0, limit).map((artist) => ({
+                    name: artist.name,
+                    url: artist.url,
+                })),
+            };
+        },
+        async getGlobalTopTracks({
+            limit = DEFAULT_LIMITS.globalTopTracks,
+        }: ToolArgsMap["getGlobalTopTracks"]) {
+            const tracks = await lastFm.getGlobalTopTracks(limit);
+            return {
+                tracks: tracks.slice(0, limit).map((track) =>
+                    mapTrack(track, track.artist.name)
+                ),
+            };
+        },
     };
 
     return {
@@ -330,4 +528,8 @@ function mapTrack(track: LastFmTrack, artist: string): MinimalTrack {
 
 function selectMediumImage(track: LastFmTrack): string | undefined {
     return track.image?.find((img) => img.size === "medium")?.["#text"] || undefined;
+}
+
+function stripHtml(input: string): string {
+    return input.replace(/<[^>]+>/g, "").trim();
 }

@@ -31,6 +31,32 @@ export interface LastFmArtist {
   }[];
 }
 
+export interface LastFmTag {
+  name: string;
+  count?: number;
+  reach?: number;
+}
+
+export interface LastFmArtistInfo {
+  name: string;
+  url: string;
+  bio?: {
+    summary: string;
+    content: string;
+  };
+  tags?: {
+    tag: LastFmTag[];
+  };
+  similar?: {
+    artist: LastFmArtist[];
+  };
+}
+
+export interface LastFmTagTopArtist {
+  name: string;
+  url: string;
+}
+
 async function fetchLastFm<T>(method: string, params: Record<string, string | number>): Promise<T> {
   if (!LASTFM_API_KEY) {
     throw new Error("LASTFM_API_KEY is not configured");
@@ -49,8 +75,7 @@ async function fetchLastFm<T>(method: string, params: Record<string, string | nu
     throw new Error(`Last.fm API error: ${response.statusText}`);
   }
 
-  const data = await response.json();
-  return data;
+  return response.json() as Promise<T>;
 }
 
 export const lastFm = {
@@ -60,7 +85,6 @@ export const lastFm = {
       track,
       limit,
     });
-    // The API returns { similartracks: { track: [...] } }
     return (data as LastFmResponse<{ track: LastFmTrack[] }>).similartracks?.track || [];
   },
 
@@ -69,7 +93,6 @@ export const lastFm = {
       artist,
       limit,
     });
-    // The API returns { similarartists: { artist: [...] } }
     return (data as LastFmResponse<{ artist: LastFmArtist[] }>).similarartists?.artist || [];
   },
 
@@ -78,7 +101,6 @@ export const lastFm = {
       tag,
       limit,
     });
-    // The API returns { tracks: { track: [...] } }
     return (data as LastFmResponse<{ track: LastFmTrack[] }>).tracks?.track || [];
   },
 
@@ -87,8 +109,56 @@ export const lastFm = {
       artist,
       limit,
     });
-    // The API returns { toptracks: { track: [...] } }
     return (data as LastFmResponse<{ track: LastFmTrack[] }>).toptracks?.track || [];
   },
-};
 
+  async getArtistInfo(artist: string) {
+    const data = await fetchLastFm<LastFmResponse<LastFmArtistInfo>>("artist.getInfo", {
+      artist,
+      autocorrect: 1,
+    });
+    return (data as LastFmResponse<LastFmArtistInfo>).artist;
+  },
+
+  async getArtistTopTags(artist: string, limit = 15) {
+    const data = await fetchLastFm<LastFmResponse<{ tag: LastFmTag[] }>>("artist.getTopTags", {
+      artist,
+      limit,
+      autocorrect: 1,
+    });
+    return (data as LastFmResponse<{ tag: LastFmTag[] }>).toptags?.tag || [];
+  },
+
+  async getTrackTopTags(artist: string, track: string, limit = 15) {
+    const data = await fetchLastFm<LastFmResponse<{ tag: LastFmTag[] }>>("track.getTopTags", {
+      artist,
+      track,
+      limit,
+      autocorrect: 1,
+    });
+    return (data as LastFmResponse<{ tag: LastFmTag[] }>).toptags?.tag || [];
+  },
+
+  async getTagSimilarTags(tag: string, limit = 20) {
+    const data = await fetchLastFm<LastFmResponse<{ tag: LastFmTag[] }>>("tag.getSimilar", {
+      tag,
+      limit,
+    });
+    return (data as LastFmResponse<{ tag: LastFmTag[] }>).similartags?.tag || [];
+  },
+
+  async getTagTopArtists(tag: string, limit = 20) {
+    const data = await fetchLastFm<LastFmResponse<{ artist: LastFmTagTopArtist[] }>>("tag.getTopArtists", {
+      tag,
+      limit,
+    });
+    return (data as LastFmResponse<{ artist: LastFmTagTopArtist[] }>).topartists?.artist || [];
+  },
+
+  async getGlobalTopTracks(limit = 20) {
+    const data = await fetchLastFm<LastFmResponse<{ track: LastFmTrack[] }>>("chart.getTopTracks", {
+      limit,
+    });
+    return (data as LastFmResponse<{ track: LastFmTrack[] }>).tracks?.track || [];
+  },
+};

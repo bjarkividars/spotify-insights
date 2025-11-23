@@ -17,7 +17,13 @@ export type ToolName =
     | "getSimilarTracks"
     | "getUserTopArtists"
     | "queryUserArtists"
-    | "queryUserTracks";
+    | "queryUserTracks"
+    | "getArtistInfo"
+    | "getArtistTopTags"
+    | "getTrackTopTags"
+    | "getTagSimilarTags"
+    | "getTagTopArtists"
+    | "getGlobalTopTracks";
 
 export type HistoryDirection = "top" | "bottom" | "recent";
 
@@ -111,6 +117,12 @@ export type ToolArgsMap = {
     getUserTopArtists: GetUserTopArtistsArgs;
     queryUserArtists: UserArtistsQueryArgs;
     queryUserTracks: UserTracksQueryArgs;
+    getArtistInfo: { artist: string };
+    getArtistTopTags: { artist: string; limit?: number };
+    getTrackTopTags: { artist: string; track: string; limit?: number };
+    getTagSimilarTags: { tag: string; limit?: number };
+    getTagTopArtists: { tag: string; limit?: number };
+    getGlobalTopTracks: { limit?: number };
 };
 
 export type ToolResultMap = {
@@ -121,6 +133,12 @@ export type ToolResultMap = {
     getUserTopArtists: GetUserTopArtistsResult;
     queryUserArtists: UserArtistsQueryResult;
     queryUserTracks: UserTracksQueryResult;
+    getArtistInfo: { info?: string; similar?: SimilarArtist[] };
+    getArtistTopTags: { tags: { name: string; count?: number }[] };
+    getTrackTopTags: { tags: { name: string; count?: number }[] };
+    getTagSimilarTags: { tags: { name: string }[] };
+    getTagTopArtists: { artists: { name: string; url: string }[] };
+    getGlobalTopTracks: GetTracksResult;
 };
 
 export type FunctionExecutor<TName extends ToolName = ToolName> = (
