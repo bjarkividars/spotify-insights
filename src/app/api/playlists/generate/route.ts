@@ -1,0 +1,342 @@
+import OpenAI from "openai";
+import type { ResponseFunctionToolCallItem } from "openai/resources/responses/responses";
+import type { NextRequest } from "next/server";
+
+import { getTopArtistsData } from "@/server/plays/top-artists";
+import { enrichTracksWithSpotifyData } from "@/server/spotify/tracks";
+import { createClient } from "@/utils/supabase/server";
+
+import { buildSystemPrompt, buildUserPrompt } from "@/app/(authenticated)/playlists/generate/prompts";
+import { createPlaylistToolset } from "@/app/(authenticated)/playlists/generate/toolset";
+import {
+    ConversationItem,
+    FINAL_RESPONSE_INSTRUCTION,
+    createFunctionResult,
+    createMessage,
+    extractTextResponse,
+    isFunctionCallItem,
+    isKnownTool,
+    parseFunctionArgs,
+    parsePlaylistResponse,
+} from "@/app/(authenticated)/playlists/generate/flow";
+import type {
+    PlaylistTrack,
+    PlaylistToolset,
+    ToolArgsMap,
+    ToolLogEntry,
+    ToolName,
+} from "@/app/(authenticated)/playlists/generate/types";
+
+export const runtime = "nodejs";
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+
+type StreamEvent =
+    | { type: "status"; status: "planning" | "finalizing" | "hydrating" | "done" }
+    | { type: "tool_call"; callId: string; name: string; args: unknown }
+    | { type: "tool_result"; callId: string; name: string }
+    | { type: "playlist"; name: string }
+    | { type: "track"; track: PlaylistTrack; index: number }
+    | { type: "error"; message: string };
+
+export async function POST(req: NextRequest) {
+    if (!process.env.OPENAI_API_KEY) {
+        return new Response("Missing OpenAI configuration", { status: 500 });
+    }
+
+    let input: string | undefined;
+    try {
+        const body = await req.json();
+        input = typeof body?.input === "string" ? body.input.trim() : undefined;
+    } catch {
+        return new Response("Invalid JSON body", { status: 400 });
+    }
+
+    if (!input) {
+        return new Response("Missing input", { status: 400 });
+    }
+
+    const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return new Response("Unauthorized", { status: 401 });
+    }
+
+    const topArtists = await getTopArtistsData(user.id, 50);
+    const toolset = createPlaylistToolset({ userId: user.id, topArtists });
+
+    const conversation: ConversationItem[] = [
+        createMessage("system", buildSystemPrompt()),
+        createMessage("user", buildUserPrompt(input)),
+    ];
+
+    const stream = new ReadableStream({
+        start: async (controller) => {
+            const encoder = new TextEncoder();
+            const send = (event: StreamEvent) => {
+                controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+            };
+
+            try {
+                send({ type: "status", status: "planning" });
+                const planning = await runPlanningStepWithEvents(conversation, toolset, send);
+
+                send({ type: "status", status: "finalizing" });
+                const { playlist, rawText } = await requestFinalPlaylistStream({
+                    conversation: planning.updatedConversation,
+                    toolset,
+                    send,
+                });
+
+                send({ type: "playlist", name: playlist.name });
+                let hydratedTracks = playlist.tracks;
+                send({ type: "status", status: "hydrating" });
+
+                try {
+                    hydratedTracks = await enrichTracksWithSpotifyData(user.id, playlist.tracks);
+                } catch (error) {
+                    console.error("[playlist-generation-stream] Failed to enrich tracks", error);
+                    send({
+                        type: "error",
+                        message:
+                            "Generated playlist, but failed to enrich tracks with Spotify metadata. Showing raw results.",
+                    });
+                }
+
+                hydratedTracks.forEach((track, index) =>
+                    send({
+                        type: "track",
+                        track,
+                        index,
+                    })
+                );
+
+                // Include raw response last for any debuggers listening.
+                if (process.env.NODE_ENV !== "production") {
+                    console.info("[playlist-generation-stream] raw response", rawText);
+                }
+
+                send({ type: "status", status: "done" });
+                controller.close();
+            } catch (error) {
+                console.error("[playlist-generation-stream] Error", error);
+                send({
+                    type: "error",
+                    message: error instanceof Error ? error.message : "Unknown error",
+                });
+                controller.close();
+            }
+        },
+    });
+
+    return new Response(stream, {
+        headers: {
+            "Content-Type": "application/x-ndjson",
+            "Cache-Control": "no-cache, no-transform",
+            Connection: "keep-alive",
+        },
+    });
+}
+
+async function runPlanningStepWithEvents(
+    baseConversation: ConversationItem[],
+    toolset: PlaylistToolset,
+    send: (event: StreamEvent) => void
+): Promise<{
+    updatedConversation: ConversationItem[];
+    toolLog: ToolLogEntry[];
+}> {
+    const conversation = [...baseConversation];
+    const response = await openai.responses.create({
+        model: "gpt-5.1",
+        reasoning: {
+            effort: "medium",
+        },
+        input: conversation,
+        tools: toolset.tools,
+    });
+
+    if (response.output?.length) {
+        conversation.push(...response.output);
+    }
+
+    const toolLog: ToolLogEntry[] = [];
+    if (!response.output?.length) {
+        return { updatedConversation: conversation, toolLog };
+    }
+
+    for (const item of response.output) {
+        if (!isFunctionCallItem(item)) {
+            continue;
+        }
+
+        if (!isKnownTool(item.name, toolset)) {
+            throw new Error(`Unhandled function call: ${item.name}`);
+        }
+
+        const toolName = item.name;
+        const args = parseFunctionArgs(item, toolName);
+        send({
+            type: "tool_call",
+            callId: item.call_id,
+            name: toolName,
+            args,
+        });
+
+        const result = await executeTool(toolName, args, toolset);
+        send({
+            type: "tool_result",
+            callId: item.call_id,
+            name: toolName,
+        });
+
+        toolLog.push({
+            call: {
+                name: item.name,
+                args,
+            },
+            result,
+        });
+
+        conversation.push(createFunctionResult(item, JSON.stringify(result)));
+    }
+
+    return { updatedConversation: conversation, toolLog };
+}
+
+async function requestFinalPlaylistStream({
+    conversation,
+    toolset,
+    attempt = 1,
+    toolIteration = 0,
+    send,
+}: {
+    conversation: ConversationItem[];
+    toolset: PlaylistToolset;
+    attempt?: number;
+    toolIteration?: number;
+    send: (event: StreamEvent) => void;
+}): Promise<{ playlist: { name: string; tracks: PlaylistTrack[] }; rawText: string }> {
+    const response = await openai.responses.create({
+        model: "gpt-5.1",
+        instructions: FINAL_RESPONSE_INSTRUCTION,
+        input: conversation,
+        tools: toolset.tools,
+    });
+
+    if (response.output?.length) {
+        conversation.push(...response.output);
+    }
+
+    const functionCalls =
+        response.output?.filter((item): item is ResponseFunctionToolCallItem =>
+            isFunctionCallItem(item)
+        ) ?? [];
+
+    if (functionCalls.length) {
+        const nextConversation: ConversationItem[] = [...conversation];
+        const MAX_TOOL_ITERATIONS = 3;
+
+        if (toolIteration >= MAX_TOOL_ITERATIONS) {
+            throw new Error("Exceeded tool call iterations while requesting final playlist.");
+        }
+
+        for (const call of functionCalls) {
+            if (!isKnownTool(call.name, toolset)) {
+                throw new Error(`Unhandled function call during final request: ${call.name}`);
+            }
+
+            const args = parseFunctionArgs(call, call.name);
+            send({
+                type: "tool_call",
+                callId: call.call_id,
+                name: call.name,
+                args,
+            });
+
+            const result = await executeTool(call.name, args, toolset);
+            send({
+                type: "tool_result",
+                callId: call.call_id,
+                name: call.name,
+            });
+
+            nextConversation.push(createFunctionResult(call, JSON.stringify(result)));
+        }
+
+        return requestFinalPlaylistStream({
+            conversation: nextConversation,
+            toolset,
+            attempt,
+            toolIteration: toolIteration + 1,
+            send,
+        });
+    }
+
+    const text = extractTextResponse(response).trim();
+
+    if (!text) {
+        return retryFinalPlaylistStream(conversation, toolset, attempt, "Model did not return playlist output.", send);
+    }
+
+    try {
+        return {
+            playlist: parsePlaylistResponse(text),
+            rawText: text,
+        };
+    } catch (error) {
+        return retryFinalPlaylistStream(
+            conversation,
+            toolset,
+            attempt,
+            error instanceof Error ? error.message : String(error),
+            send
+        );
+    }
+}
+
+async function retryFinalPlaylistStream(
+    conversation: ConversationItem[],
+    toolset: PlaylistToolset,
+    attempt: number,
+    reason: string,
+    send: (event: StreamEvent) => void
+) {
+    const MAX_ATTEMPTS = 2;
+    if (attempt >= MAX_ATTEMPTS) {
+        throw new Error(`Model did not return playlist output. Last error: ${reason}`);
+    }
+
+    const retryConversation: ConversationItem[] = [
+        ...conversation,
+        createMessage(
+            "system",
+            `Reminder: respond ONLY with valid JSON {"name": string, "tracks": [{ "name": string, "artist": string, "image"?: string }]}. Previous attempt failed because: ${reason}`
+        ),
+    ];
+
+    send({
+        type: "status",
+        status: "finalizing",
+    });
+
+    return requestFinalPlaylistStream({
+        conversation: retryConversation,
+        toolset,
+        attempt: attempt + 1,
+        send,
+    });
+}
+
+async function executeTool<TName extends ToolName>(
+    name: TName,
+    args: ToolArgsMap[TName],
+    toolset: PlaylistToolset
+) {
+    return toolset.executors[name](args);
+}

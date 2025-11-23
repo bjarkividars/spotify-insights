@@ -1,103 +1,206 @@
 "use client";
 
-import { ArrowRight, Send, Loader2, Music } from "lucide-react";
-import { useState, useTransition } from "react";
-import { generatePlaylistAction, PlaylistGenerationResult } from "./actions";
+import { ArrowRight, Loader2, Music, Send } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { PlaylistOverlay } from "./PlaylistOverlay";
+import { createSpotifyPlaylistAction } from "./create-spotify-playlist";
 import type { PlaylistTrack } from "./types";
+
+export type StreamStatus =
+  | "idle"
+  | "planning"
+  | "finalizing"
+  | "hydrating"
+  | "streaming"
+  | "done"
+  | "error";
+
+type StreamEvent =
+  | { type: "status"; status: Exclude<StreamStatus, "error" | "streaming"> }
+  | { type: "tool_call"; callId: string; name: string; args: unknown }
+  | { type: "tool_result"; callId: string; name: string }
+  | { type: "playlist"; name: string }
+  | { type: "track"; track: PlaylistTrack; index: number }
+  | { type: "error"; message: string };
+
+const SUGGESTIONS = [
+  "Only my top artists",
+  "Complete discovery",
+  "Rediscover old favorites",
+  "My top genres mix",
+  "High energy favorites",
+  "Chill vibes",
+];
 
 export default function GeneratePlaylistPage() {
   const [input, setInput] = useState("");
-  const [isPending, startTransition] = useTransition();
-  const [result, setResult] = useState<PlaylistGenerationResult | null>(null);
+  const [playlistName, setPlaylistName] = useState<string | null>(null);
+  const [tracks, setTracks] = useState<PlaylistTrack[]>([]);
+  const [status, setStatus] = useState<StreamStatus>("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccessUrl, setSaveSuccessUrl] = useState<string | null>(null);
+
+  const abortRef = useRef<AbortController | null>(null);
+  const runIdRef = useRef(0);
+
+  const reset = useCallback(() => {
+    abortRef.current?.abort();
+    setPlaylistName(null);
+    setInput("");
+    setTracks([]);
+    setStatus("idle");
+    setError(null);
+    setShowSuggestions(true);
+    setIsSaving(false);
+    setSaveError(null);
+    setSaveSuccessUrl(null);
+  }, []);
+
+  const handleEvent = useCallback((event: StreamEvent, runId: number) => {
+    if (runId !== runIdRef.current) return;
+
+    switch (event.type) {
+      case "status":
+        setStatus(event.status);
+        if (event.status === "done") {
+          setIsStreaming(false);
+        }
+        break;
+      case "playlist":
+        setPlaylistName(event.name);
+        break;
+      case "track":
+        setStatus("streaming");
+        setTracks((prev) => [...prev, event.track]);
+        break;
+      case "error":
+        setError(event.message);
+        setStatus("error");
+        setIsStreaming(false);
+        break;
+      default:
+        break;
+    }
+  }, []);
+
+  const streamPlaylist = useCallback(
+    async (value: string) => {
+      const trimmed = value.trim();
+      if (!trimmed) return;
+
+      reset();
+      setIsStreaming(true);
+      setStatus("planning");
+      setInput(trimmed);
+      setShowSuggestions(false);
+      setSaveError(null);
+      setSaveSuccessUrl(null);
+
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const runId = runIdRef.current + 1;
+      runIdRef.current = runId;
+
+      try {
+        const response = await fetch("/api/playlists/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input: trimmed }),
+          signal: controller.signal,
+        });
+
+        if (!response.ok || !response.body) {
+          const message = await response.text();
+          throw new Error(message || "Failed to generate playlist");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { value: chunk, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(chunk, { stream: true });
+
+          const parts = buffer.split("\n");
+          buffer = parts.pop() ?? "";
+
+          for (const line of parts) {
+            if (!line.trim()) continue;
+            const event = JSON.parse(line) as StreamEvent;
+            handleEvent(event, runId);
+          }
+        }
+
+        if (buffer.trim()) {
+          handleEvent(JSON.parse(buffer) as StreamEvent, runId);
+        }
+
+        setIsStreaming(false);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        const message =
+          err instanceof Error ? err.message : "Failed to generate playlist";
+        setError(message);
+        setStatus("error");
+        setIsStreaming(false);
+      }
+    },
+    [handleEvent, reset]
+  );
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!input.trim()) return;
-
-    startTransition(async () => {
-      try {
-        const data = await generatePlaylistAction(input);
-        setResult(data);
-      } catch (error) {
-        console.error("Failed to generate playlist", error);
-        // TODO: Handle error state
-      }
-    });
+    void streamPlaylist(input);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
     setInput(suggestion);
-    // Optional: auto-submit on suggestion click?
-    // For now, just fill the input so user can edit or submit.
-    // Actually, let's auto-submit for better UX.
-    startTransition(async () => {
-      try {
-        const data = await generatePlaylistAction(suggestion);
-        setResult(data);
-      } catch (error) {
-        console.error("Failed to generate playlist", error);
-      }
-    });
+    void streamPlaylist(suggestion);
   };
 
-  if (result) {
-    return (
-      <div className="flex flex-col items-center justify-start flex-1 max-w-4xl mx-auto w-full py-8 px-4">
-        <div className="w-full mb-8 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">{result.name}</h2>
-          <button 
-            onClick={() => setResult(null)}
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Start Over
-          </button>
-        </div>
+  const handleSaveToSpotify = useCallback(async () => {
+    if (!playlistName || tracks.length === 0) return;
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccessUrl(null);
+    try {
+      const result = await createSpotifyPlaylistAction({
+        name: playlistName,
+        tracks,
+      });
+      setSaveSuccessUrl(result.url);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to save to Spotify";
+      setSaveError(message);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [playlistName, tracks]);
 
-        <div className="w-full grid gap-4">
-          {result.tracks.map((track: PlaylistTrack, i: number) => (
-            <div key={`${track.spotifyId ?? track.name}-${i}`} className="flex items-center gap-4 p-3 rounded-lg bg-card border border-border hover:bg-muted/50 transition-colors">
-              <div className="w-12 h-12 bg-muted rounded flex items-center justify-center shrink-0 overflow-hidden">
-                {track.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={track.image} alt={track.artist} className="w-full h-full object-cover" />
-                ) : (
-                  <Music className="w-6 h-6 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{track.name}</p>
-                <p className="text-sm text-muted-foreground truncate">{track.artist}</p>
-              </div>
-              {track.uri && (
-                <a
-                  href={track.uri}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm text-primary hover:underline"
-                >
-                  Open
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
-        
-        {result.tracks.length === 0 && (
-           <div className="text-center py-12 text-muted-foreground">
-             No tracks found. Try a different prompt!
-           </div>
-        )}
-      </div>
-    );
-  }
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
+
+  const showResult = !!playlistName || tracks.length > 0;
+  const overlayVisible = showResult || status === "streaming";
+
+  const statusMessage = useStatusMessage(status);
 
   return (
-    <div className="flex flex-col items-center justify-center flex-1 max-w-2xl mx-auto w-full">
+    <div className="flex flex-col items-center justify-center flex-1 max-w-4xl mx-auto w-full py-8 px-4">
       <div className="text-center mb-8 space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">
           Generate from Your History
         </h1>
-        <p className="text-muted-foreground text-lg">
+        <p className="text-foreground/70 text-lg">
           Create unique playlists based on your listening habits. Describe what
           you want, and we&apos;ll curate it from your data.
         </p>
@@ -114,19 +217,19 @@ export default function GeneratePlaylistPage() {
                 handleSubmit();
               }
             }}
-            className="flex-1 w-full resize-none bg-transparent px-4 py-2 text-base placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex-1 w-full resize-none bg-transparent px-4 py-2 text-base placeholder:text-foreground/60 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="Rediscover songs I haven't played in a while"
             rows={1}
-            disabled={isPending}
+            disabled={isStreaming}
           />
           <div className="pb-1 pr-2">
             <button
               type="submit"
-              disabled={isPending || !input.trim()}
+              disabled={isStreaming || !input.trim()}
               className="btn-primary h-8 w-8 p-0 rounded-full flex items-center justify-center shrink-0 disabled:opacity-50"
               aria-label="Generate playlist"
             >
-              {isPending ? (
+              {isStreaming ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Send className="w-4 h-4 transform translate-y-px -translate-x-px" />
@@ -136,26 +239,80 @@ export default function GeneratePlaylistPage() {
         </form>
       </div>
 
-      <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
-        {[
-          "Only my top artists",
-          "Complete discovery",
-          "Rediscover old favorites",
-          "My top genres mix",
-          "High energy favorites",
-          "Chill vibes",
-        ].map((suggestion) => (
-          <button
-            key={suggestion}
-            onClick={() => handleSuggestionClick(suggestion)}
-            disabled={isPending}
-            className="group cursor-pointer text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 py-2 px-3 rounded-md transition-colors text-left border border-transparent hover:border-border flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {suggestion}
-            <ArrowRight className="w-4 h-4 ml-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-          </button>
-        ))}
-      </div>
+      {showSuggestions && (
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
+          {SUGGESTIONS.map((suggestion) => (
+            <button
+              key={suggestion}
+              onClick={() => handleSuggestionClick(suggestion)}
+              disabled={isStreaming}
+              className="group cursor-pointer text-sm text-foreground/70 hover:text-foreground hover:bg-muted/50 py-2 px-3 rounded-md transition-colors text-left border border-transparent hover:border-border flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {suggestion}
+              <ArrowRight className="w-4 h-4 ml-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!showSuggestions && (
+        <div className="mt-8 w-full flex items-center h-[88px] justify-center gap-2 text-sm text-foreground/70">
+          {status === "error" ? (
+            <Music className="w-4 h-4" />
+          ) : (
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          )}
+          <span>{statusMessage}</span>
+        </div>
+      )}
+
+      {overlayVisible && (
+        <PlaylistOverlay
+          playlistName={playlistName}
+          tracks={tracks}
+          status={status}
+          onClose={reset}
+          onSave={handleSaveToSpotify}
+          isSaving={isSaving}
+          saveError={saveError}
+          saveSuccessUrl={saveSuccessUrl}
+        />
+      )}
     </div>
   );
+}
+
+function useStatusMessage(status: StreamStatus) {
+  const map: Record<StreamStatus, string | string[]> = {
+    idle: "Waiting for your prompt",
+    planning: [
+      "Exploring your listening history...",
+      "Gathering ideas from your recent plays...",
+      "Finding themes in what you love...",
+    ],
+    finalizing: [
+      "Pulling it all together...",
+      "Locking in the perfect mix...",
+      "Naming and sequencing the vibes...",
+    ],
+    hydrating: [
+      "Checking Spotify for the best versions...",
+      "Grabbing track details...",
+      "Adding artwork and links...",
+    ],
+    streaming: [
+      "Dropping tracks into place...",
+      "Building your playlist, one song at a time...",
+      "Letting the tracks roll in...",
+    ],
+    done: "Playlist ready",
+    error: "Something went wrong",
+  };
+
+  const options = map[status];
+  return Array.isArray(options) ? randomFrom(options) : options;
+}
+
+function randomFrom(options: string[]) {
+  return options[Math.floor(Math.random() * options.length)];
 }

@@ -131,6 +131,34 @@
   .chip {
     @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-muted border border-border;
   }
+
+  .fade-top {
+    position: relative;
+  }
+  .fade-top::before {
+    pointer-events: none;
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: calc(-1 * var(--fade-size, 2rem));
+    height: var(--fade-size, 2rem);
+    background: linear-gradient(to top, hsl(var(--background)), transparent);
+  }
+
+  .fade-bottom {
+    position: relative;
+    isolation: isolate;
+  }
+  .fade-bottom::after {
+    pointer-events: none;
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: calc(-1 * var(--fade-size, 2rem));
+    height: var(--fade-size, 2rem);
+    background: linear-gradient(to bottom, hsl(var(--background)), transparent);
+    z-index: 1;
+  }
 }
 
 /* Utilities mapping CSS variables -> Tailwind theme tokens */
