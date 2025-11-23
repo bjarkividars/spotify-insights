@@ -196,11 +196,11 @@ export default function GeneratePlaylistPage() {
 
   return (
     <div className="flex flex-col items-center justify-center flex-1 max-w-4xl mx-auto w-full py-8 px-4">
-      <div className="text-center mb-8 space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
+      <div className="text-center mb-8 space-y-2 px-2">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
           Generate from Your History
         </h1>
-        <p className="text-foreground/70 text-lg">
+        <p className="text-foreground/70 text-base sm:text-lg">
           Create unique playlists based on your listening habits. Describe what
           you want, and we&apos;ll curate it from your data.
         </p>
@@ -240,7 +240,7 @@ export default function GeneratePlaylistPage() {
       </div>
 
       {showSuggestions && (
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full">
           {SUGGESTIONS.map((suggestion) => (
             <button
               key={suggestion}
@@ -256,7 +256,7 @@ export default function GeneratePlaylistPage() {
       )}
 
       {!showSuggestions && (
-        <div className="mt-8 w-full flex items-center h-[88px] justify-center gap-2 text-sm text-foreground/70">
+        <div className="mt-8 w-full flex items-center h-[88px] justify-center gap-2 text-sm text-foreground/70 px-2 text-center">
           {status === "error" ? (
             <Music className="w-4 h-4" />
           ) : (

@@ -29,10 +29,10 @@ export function PlaylistOverlay({
   saveSuccessUrl,
 }: PlaylistOverlayProps) {
   return (
-    <div className="fixed inset-0 bg-bg/80 backdrop-blur-sm flex items-center justify-center px-4 py-8 z-50">
-      <div className="relative w-full max-w-3xl bg-background border border-border rounded-2xl shadow-2xl p-6 flex flex-col">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-2xl font-bold">
+    <div className="fixed inset-0 bg-bg/80 backdrop-blur-sm flex items-center justify-center px-3 sm:px-4 py-6 sm:py-8 z-50">
+      <div className="relative w-full max-w-3xl bg-background border border-border rounded-2xl shadow-2xl p-4 sm:p-6 flex flex-col gap-3 sm:gap-4">
+        <div className="flex items-start sm:items-center justify-between gap-3">
+          <h2 className="text-xl sm:text-2xl font-bold leading-tight">
             {playlistName || "Curating your playlist..."}
           </h2>
           <button
@@ -45,10 +45,10 @@ export function PlaylistOverlay({
         </div>
 
         <div
-          className="relative w-full h-[64vh] fade-top fade-bottom"
-          style={{ "--fade-size": "16px" } as CSSProperties}
+          className="relative w-full h-[72vh] sm:h-[64vh] fade-top fade-bottom"
+          style={{ "--fade-size": "14px" } as CSSProperties}
         >
-          <div className="grid gap-4 max-h-[64vh] overflow-y-auto pr-1 py-4">
+          <div className="grid gap-3 sm:gap-4 h-[72vh] sm:h-[64vh] overflow-y-auto pr-1 py-3 sm:py-4">
             {tracks.map((track, i) => (
               <AnimatedTrackRow
                 key={`${track.spotifyId ?? track.name}-${i}`}
@@ -59,8 +59,8 @@ export function PlaylistOverlay({
           </div>
         </div>
 
-        <div className="sticky bottom-0 left-0 w-full bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
-          <div className="flex flex-col text-sm text-foreground/70">
+        <div className="sticky bottom-0 left-0 w-full bg-card border border-border rounded-xl px-3 sm:px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex flex-col text-sm text-foreground/70 w-full sm:w-auto">
             {saveError && <span className="text-red-500">{saveError}</span>}
             {saveSuccessUrl && (
               <a
@@ -79,7 +79,7 @@ export function PlaylistOverlay({
           <button
             onClick={onSave}
             disabled={isSaving || tracks.length === 0 || !playlistName}
-            className="btn-primary px-4 py-2 rounded-full flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary px-4 py-2 rounded-full flex items-center gap-2 w-full sm:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
             <span>{saveSuccessUrl ? "Saved" : "Save to my Spotify"}</span>
