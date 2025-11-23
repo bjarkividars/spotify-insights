@@ -29,15 +29,12 @@ export function PlaylistOverlay({
   saveSuccessUrl,
 }: PlaylistOverlayProps) {
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center px-4 py-8 z-50">
-      <div className="relative w-full max-w-3xl bg-card border border-border rounded-2xl shadow-2xl p-6 flex flex-col">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <h2 className="text-2xl font-bold">
-              {playlistName || "Curating your playlist..."}
-            </h2>
-          </div>
+    <div className="fixed inset-0 bg-bg/80 backdrop-blur-sm flex items-center justify-center px-4 py-8 z-50">
+      <div className="relative w-full max-w-3xl bg-background border border-border rounded-2xl shadow-2xl p-6 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-2xl font-bold">
+            {playlistName || "Curating your playlist..."}
+          </h2>
           <button
             onClick={onClose}
             className="text-foreground/70 hover:text-foreground cursor-pointer"
@@ -82,7 +79,7 @@ export function PlaylistOverlay({
               </a>
             )}
             {!saveError && !saveSuccessUrl && (
-              <span>Ready to keep this mix? Save it to your Spotify.</span>
+              <span>Ready to keep this mix?</span>
             )}
           </div>
           <button
@@ -90,12 +87,8 @@ export function PlaylistOverlay({
             disabled={isSaving || tracks.length === 0 || !playlistName}
             className="btn-primary px-4 py-2 rounded-full flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4" />
-            )}
-            <span>{saveSuccessUrl ? "Saved" : "Save to Spotify"}</span>
+            {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+            <span>{saveSuccessUrl ? "Saved" : "Save to my Spotify"}</span>
           </button>
         </div>
       </div>

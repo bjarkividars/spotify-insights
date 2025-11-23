@@ -138,11 +138,12 @@
   .fade-top::before {
     pointer-events: none;
     content: "";
+    z-index: 2;
     position: absolute;
     inset-inline: 0;
-    top: calc(-1 * var(--fade-size, 2rem));
+    top: 0;
     height: var(--fade-size, 2rem);
-    background: linear-gradient(to top, hsl(var(--background)), transparent);
+    background: linear-gradient(to bottom, hsl(var(--bg)), transparent);
   }
 
   .fade-bottom {
@@ -154,10 +155,10 @@
     content: "";
     position: absolute;
     inset-inline: 0;
-    bottom: calc(-1 * var(--fade-size, 2rem));
+    bottom: 0;
     height: var(--fade-size, 2rem);
-    background: linear-gradient(to bottom, hsl(var(--background)), transparent);
-    z-index: 1;
+    background: linear-gradient(to top, hsl(var(--bg)), transparent);
+    z-index: 10;
   }
 }
 
