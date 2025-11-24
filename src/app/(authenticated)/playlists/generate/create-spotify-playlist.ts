@@ -1,0 +1,82 @@
+"use server";
+
+import { SpotifyApi, type AccessToken } from "@spotify/web-api-ts-sdk";
+
+import { tokenManager } from "@/server/spotify/token-manager";
+import { createClient } from "@/utils/supabase/server";
+import type { PlaylistTrack } from "./types";
+
+type CreatePlaylistInput = {
+    name: string;
+    description?: string;
+    tracks: PlaylistTrack[];
+};
+
+type CreatePlaylistResult = {
+    id: string;
+    uri: string;
+    url: string | null;
+    tracksAdded: number;
+};
+
+export async function createSpotifyPlaylistAction(
+    input: CreatePlaylistInput
+): Promise<CreatePlaylistResult> {
+    const trimmedName = input.name?.trim();
+    if (!trimmedName) {
+        throw new Error("Playlist name is required");
+    }
+
+    const uris = input.tracks
+        .map((track) => track.uri || (track.spotifyId ? `spotify:track:${track.spotifyId}` : null))
+        .filter((uri): uri is string => Boolean(uri));
+
+    if (!uris.length) {
+        throw new Error("No Spotify track URIs available to add to the playlist.");
+    }
+
+    const supabase = await createClient();
+    const {
+        data: { user },
+        error,
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+        throw new Error("Not authenticated");
+    }
+
+    const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
+    if (!clientId) {
+        throw new Error("NEXT_PUBLIC_SPOTIFY_CLIENT_ID not configured");
+    }
+
+    const accessToken = await tokenManager.getAccessToken(user.id);
+    const token: AccessToken = {
+        access_token: accessToken,
+        token_type: "Bearer",
+        expires_in: 3600,
+        refresh_token: "",
+    };
+
+    const spotifyApi = SpotifyApi.withAccessToken(clientId, token);
+    const me = await spotifyApi.currentUser.profile();
+
+    const created = await spotifyApi.playlists.createPlaylist(me.id, {
+        name: trimmedName,
+        description: input.description,
+        public: false,
+    });
+
+    const chunkSize = 100;
+    for (let i = 0; i < uris.length; i += chunkSize) {
+        const slice = uris.slice(i, i + chunkSize);
+        await spotifyApi.playlists.addItemsToPlaylist(created.id, slice);
+    }
+
+    return {
+        id: created.id,
+        uri: created.uri,
+        url: created.external_urls?.spotify ?? null,
+        tracksAdded: uris.length,
+    };
+}

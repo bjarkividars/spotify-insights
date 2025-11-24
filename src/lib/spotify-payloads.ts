@@ -23,10 +23,12 @@ export type PlayArtistMinimal = {
     context?: unknown;
   };
   
-  export type HydrateArtistUpdate = {
-    id: string;
-    href?: string | null;
-    uri?: string | null;
-    images: { url: string; width?: number | null; height?: number | null }[];
-  };
+export type HydrateArtistUpdate = {
+  id: string;
+  href?: string | null;
+  uri?: string | null;
+  gradient_start?: string | null;
+  gradient_end?: string | null;
+  images: { url: string; width?: number | null; height?: number | null }[];
+};
   

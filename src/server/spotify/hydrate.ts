@@ -3,6 +3,7 @@ import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 import { tokenManager } from "./token-manager";
 import type { HydrateArtistUpdate } from "@/lib/spotify-payloads";
 import { Json } from "@/lib/database.types";
+import { extractColorsForArtists } from "@/utils/color-extraction";
 
 /**
  * Hydrate a specific list of artist IDs using the logged-in user's token.
@@ -42,15 +43,26 @@ export async function hydrateArtistsByIdsUsingUser(
     const batch = artistIds.slice(i, i + 50);
     const artistDetails = await spotifyApi.artists.get(batch);
 
+    // Compute colors for this batch (only artists with images)
+    const batchForColor = artistDetails.map((artist) => ({
+      artist_id: artist.id,
+      artist_image: artist.images.length > 0 ? artist.images[0].url : null,
+    }));
+    const colorMap = await extractColorsForArtists(batchForColor);
+
     for (const artist of artistDetails) {
       // Extract primary image (first/largest image)
       const primaryImage = artist.images.length > 0 ? artist.images[0].url : null;
       imageMap.set(artist.id, primaryImage);
 
+      const colors = colorMap.get(artist.id);
+
       updates.push({
         id: artist.id,
         href: artist.href || null,
         uri: artist.uri || null,
+        gradient_start: colors?.gradientStart ?? null,
+        gradient_end: colors?.gradientEnd ?? null,
         images: artist.images.map((img) => ({
           url: img.url,
           width: img.width || null,
@@ -70,4 +82,3 @@ export async function hydrateArtistsByIdsUsingUser(
 
   return { updated: updates.length, imageMap };
 }
-

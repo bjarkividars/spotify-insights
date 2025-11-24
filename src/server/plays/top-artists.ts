@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient, createClient } from "@/utils/supabase/server";
 import { hydrateArtistsByIdsUsingUser } from "@/server/spotify/hydrate";
 import { extractColorsForArtists } from "@/utils/color-extraction";
 
@@ -44,7 +44,9 @@ export async function getTopArtistsData(userId: string, limit = 10, offset = 0):
           id,
           name,
           primary_image_url,
-          details_status
+          details_status,
+          gradient_start,
+          gradient_end
         )
       )
     `)
@@ -54,7 +56,17 @@ export async function getTopArtistsData(userId: string, limit = 10, offset = 0):
   if (!data || data.length === 0) return [];
 
   // Count plays per artist
-  const artistPlayCounts = new Map<string, { name: string; count: number; image: string | null; status: string | null }>();
+  const artistPlayCounts = new Map<
+    string,
+    {
+      name: string;
+      count: number;
+      image: string | null;
+      status: string | null;
+      gradientStart: string | null;
+      gradientEnd: string | null;
+    }
+  >();
 
   for (const play of data) {
     const artist = play.tracks.artists;
@@ -68,6 +80,8 @@ export async function getTopArtistsData(userId: string, limit = 10, offset = 0):
         count: 1,
         image: artist.primary_image_url,
         status: artist.details_status,
+        gradientStart: artist.gradient_start,
+        gradientEnd: artist.gradient_end,
       });
     }
   }
@@ -89,16 +103,43 @@ export async function getTopArtistsData(userId: string, limit = 10, offset = 0):
   }
 
   // Prepare artists for color extraction
-  const artistsForColorExtraction = sorted.map(([artistId, artistData]) => ({
-    artist_id: artistId,
-    artist_image: imageMap.get(artistId) ?? artistData.image,
-  }));
+  // Only compute colors for artists missing cached values
+  const artistsNeedingColors = sorted
+    .filter(([, artistData]) => !artistData.gradientStart || !artistData.gradientEnd)
+    .map(([artistId, artistData]) => ({
+      artist_id: artistId,
+      artist_image: imageMap.get(artistId) ?? artistData.image,
+    }));
 
-  // Extract gradient colors for artists with images
-  const colorMap = await extractColorsForArtists(artistsForColorExtraction);
+  const colorMap = await extractColorsForArtists(artistsNeedingColors);
+
+  // Persist newly computed colors so we don't recompute
+  if (colorMap.size > 0) {
+    const admin = createAdminClient();
+    const updates = Array.from(colorMap.entries()).map(([artistId, colors]) => ({
+      id: artistId,
+      name: artistPlayCounts.get(artistId)?.name ?? "",
+      gradient_start: colors.gradientStart,
+      gradient_end: colors.gradientEnd,
+    }));
+
+    const { error: updateError } = await admin
+      .from("artists")
+      .upsert(updates);
+
+    if (updateError) {
+      console.error("Failed to persist artist colors", updateError);
+    }
+  }
 
   return sorted.map(([artistId, artistData]) => {
-    const colors = colorMap.get(artistId);
+    const colors =
+      (artistData.gradientStart && artistData.gradientEnd
+        ? {
+            gradientStart: artistData.gradientStart,
+            gradientEnd: artistData.gradientEnd,
+          }
+        : undefined) || colorMap.get(artistId);
     return {
       artist_id: artistId,
       artist_name: artistData.name,

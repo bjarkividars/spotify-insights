@@ -75,6 +75,8 @@ export type Database = {
         Row: {
           details_fetched_at: string | null
           details_status: string | null
+          gradient_end: string | null
+          gradient_start: string | null
           href: string | null
           id: string
           name: string
@@ -87,6 +89,8 @@ export type Database = {
         Insert: {
           details_fetched_at?: string | null
           details_status?: string | null
+          gradient_end?: string | null
+          gradient_start?: string | null
           href?: string | null
           id: string
           name: string
@@ -99,6 +103,8 @@ export type Database = {
         Update: {
           details_fetched_at?: string | null
           details_status?: string | null
+          gradient_end?: string | null
+          gradient_start?: string | null
           href?: string | null
           id?: string
           name?: string
