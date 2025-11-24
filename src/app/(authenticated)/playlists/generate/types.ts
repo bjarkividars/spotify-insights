@@ -10,6 +10,15 @@ export type PlaylistTrack = {
     uri?: string | null;
 };
 
+export type StreamStatus =
+    | "idle"
+    | "planning"
+    | "finalizing"
+    | "hydrating"
+    | "streaming"
+    | "done"
+    | "error";
+
 export type ToolName =
     | "getSimilarArtists"
     | "getArtistTopTracks"

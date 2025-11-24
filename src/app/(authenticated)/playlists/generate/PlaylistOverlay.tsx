@@ -4,39 +4,33 @@ import { ChevronRight, Loader2, Music, Sparkles, X } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 
-import type { PlaylistTrack } from "./types";
-import type { StreamStatus } from "./page";
+import { usePlaylistGeneration } from "@/components/playlist-context";
+import { PlaylistTrack } from "./types";
 
-type PlaylistOverlayProps = {
-  playlistName: string | null;
-  tracks: PlaylistTrack[];
-  status: StreamStatus;
-  onClose: () => void;
-  onSave: () => void;
-  isSaving: boolean;
-  saveError: string | null;
-  saveSuccessUrl: string | null;
-};
+export function PlaylistOverlay() {
+  const {
+    playlistName,
+    tracks,
+    status,
+    reset,
+    saveToSpotify,
+    isSaving,
+    saveError,
+    saveSuccessUrl,
+    overlayVisible,
+  } = usePlaylistGeneration();
 
-export function PlaylistOverlay({
-  playlistName,
-  tracks,
-  status,
-  onClose,
-  onSave,
-  isSaving,
-  saveError,
-  saveSuccessUrl,
-}: PlaylistOverlayProps) {
+  if (!overlayVisible) return null;
+
   return (
     <div className="fixed inset-0 bg-bg/80 backdrop-blur-sm flex items-center justify-center px-3 sm:px-4 py-6 sm:py-8 z-50">
-      <div className="relative w-full max-w-3xl bg-background border border-border rounded-2xl shadow-2xl p-4 sm:p-6 flex flex-col gap-3 sm:gap-4">
-        <div className="flex items-start sm:items-center justify-between gap-3">
+      <div className="relative w-full max-w-3xl bg-background border border-border rounded-2xl shadow-2xl p-4 sm:p-6 flex flex-col ">
+        <div className="flex items-start sm:items-center justify-between gap-3 mb-3">
           <h2 className="text-xl sm:text-2xl font-bold leading-tight">
             {playlistName || "Curating your playlist..."}
           </h2>
           <button
-            onClick={onClose}
+            onClick={reset}
             className="text-foreground/70 hover:text-foreground cursor-pointer"
             aria-label="Close"
           >
@@ -77,7 +71,7 @@ export function PlaylistOverlay({
             )}
           </div>
           <button
-            onClick={onSave}
+            onClick={saveToSpotify}
             disabled={isSaving || tracks.length === 0 || !playlistName}
             className="btn-primary px-4 py-2 rounded-full flex items-center gap-2 w-full sm:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >

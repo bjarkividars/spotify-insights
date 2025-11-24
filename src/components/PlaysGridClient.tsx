@@ -104,7 +104,7 @@ export function PlaysGridClient({ initialPlays }: PlaysGridClientProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 pb-28">
         {plays.map((play, idx) => (
           <PlayCard
             key={`${play.track.id}-${play.played_at}-${idx}`}
