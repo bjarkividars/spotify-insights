@@ -100,7 +100,7 @@ export function PlaysGridClient({ initialPlays }: PlaysGridClientProps) {
     );
   }
 
-  const ghostVis = ["block", "hidden sm:flex", "hidden xl:flex"];
+  const ghostVis = ["block", "hidden sm:block", "hidden xl:block"];
 
   return (
     <>
@@ -119,7 +119,7 @@ export function PlaysGridClient({ initialPlays }: PlaysGridClientProps) {
         {/* Ghost placeholders when loading more */}
         {hasMore &&
           ghostVis.map((vis, i) => (
-            <div key={`ghost-${i}`} className={vis}>
+            <div key={`ghost-${i}`} className={`${vis} w-full`}>
               <PlayCardSkeleton index={i} />
             </div>
           ))}
@@ -130,4 +130,3 @@ export function PlaysGridClient({ initialPlays }: PlaysGridClientProps) {
     </>
   );
 }
-
