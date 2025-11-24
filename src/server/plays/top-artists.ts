@@ -118,7 +118,7 @@ export async function getTopArtistsData(userId: string, limit = 10, offset = 0):
     const admin = createAdminClient();
     const updates = Array.from(colorMap.entries()).map(([artistId, colors]) => ({
       id: artistId,
-      name: artistPlayCounts.get(artistId)?.name ?? undefined,
+      name: artistPlayCounts.get(artistId)?.name ?? "",
       gradient_start: colors.gradientStart,
       gradient_end: colors.gradientEnd,
     }));
