@@ -20,6 +20,25 @@ export function PlaylistOverlay() {
     overlayVisible,
   } = usePlaylistGeneration();
 
+  useEffect(() => {
+    if (!overlayVisible) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    const scrollbarCompensation =
+      window.innerWidth - document.documentElement.clientWidth;
+
+    if (scrollbarCompensation > 0) {
+      document.body.style.paddingRight = `${scrollbarCompensation}px`;
+    }
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
+    };
+  }, [overlayVisible]);
+
   if (!overlayVisible) return null;
 
   return (
@@ -42,7 +61,7 @@ export function PlaylistOverlay() {
           className="relative w-full h-[72vh] sm:h-[64vh] fade-top fade-bottom"
           style={{ "--fade-size": "14px" } as CSSProperties}
         >
-          <div className="grid gap-3 sm:gap-4 h-[72vh] sm:h-[64vh] overflow-y-auto pr-1 py-3 sm:py-4">
+          <div className="flex flex-col gap-3 sm:gap-4 h-[72vh] sm:h-[64vh] overflow-y-auto pr-1 py-3 sm:py-4">
             {tracks.map((track, i) => (
               <AnimatedTrackRow
                 key={`${track.spotifyId ?? track.name}-${i}`}
@@ -101,14 +120,13 @@ function AnimatedTrackRow({
   const Wrapper: "a" | "div" = track.uri ? "a" : "div";
 
   const baseClasses =
-    "flex items-center gap-4 p-3 rounded-lg bg-card border border-border hover:bg-muted/50 transition-all duration-500 ease-out group";
+    "flex h-fit items-center gap-4 p-3 rounded-lg bg-card border border-border hover:bg-muted/50 transition-all duration-200 ease-out group";
 
   return (
     <Wrapper
       className={`${baseClasses} ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
       }`}
-      style={{ transitionDelay: `${index * 35}ms` }}
       {...(track.uri
         ? { href: track.uri, target: "_blank", rel: "noreferrer" }
         : {})}

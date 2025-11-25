@@ -23,7 +23,7 @@ type PlaylistContextValue = {
   saveError: string | null;
   saveSuccessUrl: string | null;
   overlayVisible: boolean;
-  statusMessage: string;
+  statusMessage: string | undefined;
   startGeneration: (value: string) => Promise<void>;
   reset: () => void;
   saveToSpotify: () => Promise<void>;
@@ -212,29 +212,23 @@ export function usePlaylistGeneration() {
 }
 
 export function useStatusMessage(status: StreamStatus) {
-  const map: Record<StreamStatus, string | string[]> = {
+  const map: Record<StreamStatus, string | string[] | undefined> = {
     idle: "Waiting for your prompt",
     planning: [
       "Exploring your listening history...",
       "Gathering ideas from your recent plays...",
       "Finding themes in what you love...",
+      "Looking for the best tracks...",
+      "Building your playlist...",
     ],
     finalizing: [
       "Pulling it all together...",
       "Locking in the perfect mix...",
       "Naming and sequencing the vibes...",
     ],
-    hydrating: [
-      "Checking Spotify for the best versions...",
-      "Grabbing track details...",
-      "Adding artwork and links...",
-    ],
-    streaming: [
-      "Dropping tracks into place...",
-      "Building your playlist, one song at a time...",
-      "Letting the tracks roll in...",
-    ],
-    done: "Playlist ready",
+    hydrating: undefined,
+    streaming: undefined,
+    done: undefined,
     error: "Something went wrong",
   };
 
