@@ -21,31 +21,26 @@ export async function enrichTracksWithSpotifyData(
     }
 
     const spotifyApi = await createSpotifyClient(userId);
+    const resolved = await Promise.all(tracks.map((track) => hydrateTrack(spotifyApi, track)));
 
-    const resolved = await Promise.all(
-        tracks.map(async (track) => {
-            const match = await findSpotifyMatch(spotifyApi, track);
-            if (!match) {
-                return {
-                    ...track,
-                    image: track.image ?? null,
-                    spotifyId: track.spotifyId ?? null,
-                    uri: track.uri ?? null,
-                };
-            }
+    // Drop any entries we couldn't find on Spotify so the UI only shows playable tracks.
+    return resolved.filter((track): track is PlaylistTrack => Boolean(track));
+}
 
-            return {
-                ...track,
-                name: match.name,
-                artist: match.artist,
-                image: match.image ?? track.image ?? null,
-                spotifyId: match.id,
-                uri: match.uri,
-            };
-        })
-    );
+export async function hydrateTracksSequentially(
+    userId: string,
+    tracks: PlaylistTrack[],
+    onTrack: (track: PlaylistTrack, index: number) => void | Promise<void>
+) {
+    if (!tracks.length) return;
 
-    return resolved;
+    const spotifyApi = await createSpotifyClient(userId);
+
+    for (const [index, track] of tracks.entries()) {
+        const hydrated = await hydrateTrack(spotifyApi, track);
+        if (!hydrated) continue;
+        await onTrack(hydrated, index);
+    }
 }
 
 async function createSpotifyClient(userId: string) {
@@ -92,6 +87,25 @@ async function findSpotifyMatch(
 function buildSearchQuery(track: PlaylistTrack) {
     const artist = track.artist ? ` artist:${track.artist}` : "";
     return `track:${track.name}${artist}`;
+}
+
+async function hydrateTrack(
+    spotifyApi: Awaited<ReturnType<typeof createSpotifyClient>>,
+    track: PlaylistTrack
+): Promise<PlaylistTrack | null> {
+    const match = await findSpotifyMatch(spotifyApi, track);
+    if (!match) {
+        return null;
+    }
+
+    return {
+        ...track,
+        name: match.name,
+        artist: match.artist,
+        image: match.image ?? track.image ?? null,
+        spotifyId: match.id,
+        uri: match.uri,
+    };
 }
 
 function selectBestTrack(items: Track[], desired: PlaylistTrack): Track | null {
