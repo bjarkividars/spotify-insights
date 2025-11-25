@@ -184,8 +184,27 @@
       transform: translateX(100%);
     }
   }
+
+  /* Vertical, subtle shimmer for bars */
+  @keyframes shimmer-vertical {
+    0% {
+      transform: translateY(80%);
+      opacity: 0.4;
+    }
+    60% {
+      opacity: 0.75;
+    }
+    100% {
+      transform: translateY(-80%);
+      opacity: 0.35;
+    }
+  }
   
   .animate-shimmer {
     animation: shimmer 2s linear infinite;
+  }
+
+  .animate-shimmer-vertical {
+    animation: shimmer-vertical 1.6s ease-out infinite;
   }
 }

@@ -8,7 +8,7 @@ import {
   adjustColorsForContrast,
   makeModernGradient,
 } from "@/utils/client-color-contrast";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronRight } from "lucide-react";
 
 type ArtistBarChartProps = {
@@ -36,6 +36,13 @@ export function ArtistBarChart({
 }: ArtistBarChartProps) {
   // Calculate height as percentage of max (min 30% for visibility)
   const heightPercent = Math.max((playCount / maxPlayCount) * 100, 30);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Trigger entry animation on mount
+    const t = requestAnimationFrame(() => setIsVisible(true));
+    return () => cancelAnimationFrame(t);
+  }, []);
 
   // Get current theme background color
   const backgroundColor = useThemeBackground();
@@ -65,9 +72,15 @@ export function ArtistBarChart({
         // Layer a subtle dark overlay to add depth without looking dated
         background: `linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.18) 100%), linear-gradient(to bottom, ${modernColors.gradientStart}, ${modernColors.gradientEnd})`,
         backgroundBlendMode: "multiply",
-        height: `${heightPercent}%`,
+        height: `${isVisible ? heightPercent : 0}%`,
+        opacity: isVisible ? 1 : 0.6,
+        transition: "height 600ms cubic-bezier(0.18, 0.85, 0.25, 1), opacity 500ms ease-out",
       }
-    : { height: `${heightPercent}%` };
+    : {
+        height: `${isVisible ? heightPercent : 0}%`,
+        opacity: isVisible ? 1 : 0.6,
+        transition: "height 600ms cubic-bezier(0.18, 0.85, 0.25, 1), opacity 500ms ease-out",
+      };
 
   const barClassName = modernColors
     ? "transition-all duration-300 flex flex-col items-center justify-end p-2 gap-1"

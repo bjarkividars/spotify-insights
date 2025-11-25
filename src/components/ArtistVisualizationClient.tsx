@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { ArtistBarChart } from "./ArtistBarChart";
 import { MobileArtistBlock } from "./MobileArtistBlock";
+import { LoadingBar, MobileLoadingBlock } from "./shared-loading-bars";
 import { getTopArtistsPage } from "@/app/actions";
 
 type Artist = {
@@ -18,54 +19,6 @@ type Artist = {
 type ArtistVisualizationClientProps = {
   initialArtists: Artist[];
   totalPayout: number;
-};
-
-const LoadingBar = ({ index }: { index: number }) => {
-  return (
-    <div className="flex flex-col items-center gap-2 min-w-[100px] shrink-0 h-full">
-      <div className="relative w-20 flex-1 bg-muted rounded-t-xl overflow-hidden">
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 dark:via-white/40 to-transparent animate-shimmer"
-          style={{ animationDelay: `${-index * 0.08}s` }}
-        />
-      </div>
-      <div className="w-full h-4 bg-muted rounded relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 dark:via-white/40 to-transparent animate-shimmer"
-          style={{ animationDelay: `${-index * 0.08}s` }}
-        />
-      </div>
-    </div>
-  );
-};
-
-const MobileLoadingBlock = ({ index }: { index: number }) => {
-  return (
-    <div className="w-full h-40 rounded-xl bg-muted relative overflow-hidden">
-      {/* Shimmer overlay */}
-      <div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 dark:via-white/40 to-transparent animate-shimmer"
-        style={{ animationDelay: `${-index * 0.05}s` }}
-      />
-      
-      {/* Rank badge skeleton */}
-      <div className="absolute top-3 right-3 w-7 h-7 bg-background/40 rounded-full" />
-      
-      {/* Stats skeleton - top left */}
-      <div className="absolute top-3 left-3 space-y-2">
-        <div className="h-5 w-16 bg-background/40 rounded" />
-        <div className="h-4 w-12 bg-background/40 rounded" />
-      </div>
-      
-      {/* Bottom content skeleton */}
-      <div className="absolute bottom-3 right-3 left-3 flex items-center justify-between gap-3">
-        <div className="flex-1">
-          <div className="h-6 w-32 bg-background/40 rounded" />
-        </div>
-        <div className="w-16 h-16 rounded-lg bg-background/40 shrink-0" />
-      </div>
-    </div>
-  );
 };
 
 export function ArtistVisualizationClient({
@@ -280,4 +233,3 @@ export function ArtistVisualizationClient({
     </section>
   );
 }
-

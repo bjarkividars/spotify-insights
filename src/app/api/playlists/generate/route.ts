@@ -1,5 +1,6 @@
 import OpenAI from "openai";
-import type { Response, ResponseFunctionToolCallItem } from "openai/resources/responses/responses";
+import type { Response, ResponseFunctionToolCallItem, ResponseOutputItem } from "openai/resources/responses/responses";
+import { inspect } from "util";
 import type { NextRequest } from "next/server";
 
 import { getTopArtistsData } from "@/server/plays/top-artists";
@@ -166,7 +167,7 @@ async function runPlanningStepWithEvents(
     });
 
     if (response.output?.length) {
-        conversation.push(...response.output);
+        conversation.push(...stripParsedArguments(response.output));
     }
 
     const toolLog: ToolLogEntry[] = [];
@@ -235,7 +236,7 @@ async function requestFinalPlaylistStream({
         });
 
         if (response.output?.length) {
-            currentConversation.push(...response.output);
+            currentConversation.push(...stripParsedArguments(response.output));
         }
 
         const functionCalls =
@@ -296,8 +297,7 @@ async function requestFinalPlaylistStream({
                     ...currentConversation,
                     createMessage(
                         "system",
-                        `Reminder: respond ONLY with valid JSON {"name": string, "tracks": [{ "name": string, "artist": string, "image"?: string }]}. Previous attempt failed because: ${
-                            error instanceof Error ? error.message : String(error)
+                        `Reminder: respond ONLY with valid JSON {"name": string, "tracks": [{ "name": string, "artist": string, "image"?: string }]}. Previous attempt failed because: ${error instanceof Error ? error.message : String(error)
                         }`
                     ),
                 ];
@@ -355,5 +355,46 @@ async function executeTool<TName extends ToolName>(
     args: ToolArgsMap[TName],
     toolset: PlaylistToolset
 ) {
-    return toolset.executors[name](args);
+    const started = Date.now();
+    try {
+        const result = await toolset.executors[name](args);
+        console.info(
+            "[playlist-generation] tool",
+            inspect(
+                {
+                    name,
+                    args,
+                    result,
+                    durationMs: Date.now() - started,
+                },
+                { depth: null, maxArrayLength: null }
+            )
+        );
+        return result;
+    } catch (error) {
+        console.error(
+            "[playlist-generation] tool error",
+            inspect(
+                {
+                    name,
+                    args,
+                    error,
+                    durationMs: Date.now() - started,
+                },
+                { depth: null, maxArrayLength: null }
+            )
+        );
+        throw error;
+    }
+}
+
+function stripParsedArguments(items: ResponseOutputItem[]): ResponseOutputItem[] {
+    return items.map((item) => {
+        if (item.type === "function_call" && "parsed_arguments" in item) {
+            const clone = { ...item } as Record<string, unknown>;
+            delete clone.parsed_arguments;
+            return clone as unknown as ResponseOutputItem;
+        }
+        return item;
+    });
 }
