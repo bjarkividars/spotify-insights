@@ -4,8 +4,8 @@ import { Loader2, Send } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePlaylistGeneration } from "./playlist-context";
 
-const DESKTOP_PLACEHOLDER = "Describe the playlist you want us to make";
-const MOBILE_PLACEHOLDER = "Playlist idea";
+const DESKTOP_PLACEHOLDER = "Tell us the mood you want...";
+const MOBILE_PLACEHOLDER = "Music for...";
 
 export function GlobalPlaylistInput() {
   const {
