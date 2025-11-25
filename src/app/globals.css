@@ -207,4 +207,18 @@
   .animate-shimmer-vertical {
     animation: shimmer-vertical 1.6s ease-out infinite;
   }
+
+  /* Turntable spinner */
+  @keyframes turntable-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-turntable-spin {
+    animation: turntable-spin 1.2s cubic-bezier(0.4, 0.2, 0.2, 1) infinite;
+  }
 }

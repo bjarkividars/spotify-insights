@@ -36,7 +36,7 @@ export function SiteHeader() {
             {isPlaysPage ? (
               <Link
                 href="/"
-                className="btn-ghost flex items-center gap-2 p-2 sm:px-4 sm:py-2"
+                className="btn-secondary flex items-center gap-2 p-2 sm:px-4 sm:py-2"
                 aria-label="Home"
               >
                 <Home className="w-5 h-5 sm:w-4 sm:h-4" />
@@ -45,7 +45,7 @@ export function SiteHeader() {
             ) : (
               <Link
                 href="/plays"
-                className="btn-primary flex items-center gap-2 p-2 sm:px-4 sm:py-2"
+                className="btn-secondary flex items-center gap-2 p-2 sm:px-4 sm:py-2"
                 aria-label="View History"
               >
                 <ListMusic className="w-5 h-5 sm:w-4 sm:h-4" />
