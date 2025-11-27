@@ -53,8 +53,13 @@ export function GlobalPlaylistInput() {
 
   const shouldExpand = useMemo(() => {
     const hasInput = !!input.trim();
+    // When in idle state (showSuggestions true) with no input, always collapse
+    // This handles the case where isActive gets "stuck" after modal close
+    if (!hasInput && showSuggestions) {
+      return false;
+    }
     return isActive || hasInput;
-  }, [input, isActive]);
+  }, [input, isActive, showSuggestions]);
 
   const transitionClasses = shouldAnimate
     ? "transition-all duration-350 ease-out"
@@ -64,8 +69,8 @@ export function GlobalPlaylistInput() {
   const inputWidth = isHomePage
     ? "min(96vw, 700px)"
     : shouldExpand
-      ? "min(96vw, 700px)"
-      : "clamp(260px, 50vw, 420px)";
+    ? "min(96vw, 700px)"
+    : "clamp(260px, 50vw, 420px)";
 
   return (
     <div
@@ -79,29 +84,34 @@ export function GlobalPlaylistInput() {
     >
       <div className="flex justify-center px-4">
         <div
-          className={`pointer-events-auto flex flex-col items-stretch gap-2 ${transitionClasses}`}
+          className={`pointer-events-auto relative ${transitionClasses}`}
           style={{ width: inputWidth }}
         >
-          {/* Status message - show when streaming on non-home pages */}
+          {/* Status message - positioned absolutely so it doesn't affect input position */}
           <div
-            className={`flex justify-center transition-[max-height,opacity] duration-200 ease-out ${
+            className={`absolute left-0 right-0 flex justify-center pointer-events-none transition-[opacity,transform] duration-200 ease-out ${
               showStatus && !isHomePage
-                ? "max-h-12 opacity-100"
-                : "max-h-0 opacity-0"
+                ? "opacity-100 -translate-y-full"
+                : "opacity-0 -translate-y-[calc(100%-4px)]"
             }`}
+            style={{ bottom: "calc(100% - 16px)" }}
             aria-live="polite"
           >
             <span
-              className={`inline-flex items-center px-3 py-1.5 rounded-full bg-background/90 backdrop-blur-md text-center text-xs text-foreground/80 shadow-soft ${
+              className={`inline-flex items-center px-3 py-1.5 rounded-full bg-background/90 backdrop-blur-md text-center text-xs text-foreground/80 shadow-soft transition-transform duration-200 ${
                 showStatus && !isHomePage ? "scale-100" : "scale-95"
-              } transition-[transform,opacity] duration-200`}
+              }`}
             >
               {showStatus ? statusMessage : null}
             </span>
           </div>
 
           {/* The input bar */}
-          <div className={`rounded-full bg-background/60 backdrop-blur-xl border border-border/60 shadow-${isHomePage ? "sm" : "xl"} shadow-black/10 px-3 py-1.5 flex items-center gap-2`}>
+          <div
+            className={`rounded-full bg-background/60 backdrop-blur-xl border border-border/60 shadow-${
+              isHomePage ? "sm" : "xl"
+            } shadow-black/10 px-3 py-1.5 flex items-center gap-2`}
+          >
             <form
               onSubmit={handleSubmit}
               className="flex items-center gap-2 flex-1"
