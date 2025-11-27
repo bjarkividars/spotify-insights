@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Loader2, Music, Sparkles, X } from "lucide-react";
+import { ChevronRight, Loader2, Music, X } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 
