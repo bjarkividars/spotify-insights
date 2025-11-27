@@ -1,5 +1,3 @@
-import { ThemeToggle } from "@/components/ThemeToggle";
-
 export default function DesignSystemPage() {
   return (
     <div className="min-h-[100dvh] bg-background py-12 px-4">
@@ -7,24 +5,27 @@ export default function DesignSystemPage() {
         <header className="mb-12">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Design System</h1>
-              <p className="text-foreground/70">A showcase of all design tokens and components</p>
-            </div>
-            <div>
-              <p className="text-xs text-foreground/60 mb-2 text-right">Theme</p>
-              <ThemeToggle />
+              <h1 className="text-4xl font-bold text-foreground mb-2">
+                Design System
+              </h1>
+              <p className="text-foreground/70">
+                A showcase of all design tokens and components
+              </p>
             </div>
           </div>
           <div className="card bg-primary/10 border-primary/20">
             <p className="text-sm text-foreground">
-              💡 <strong>Tip:</strong> Toggle between light, system, and dark themes to see how all components adapt!
+              💡 <strong>Tip:</strong> Toggle between light, system, and dark
+              themes to see how all components adapt!
             </p>
           </div>
         </header>
 
         {/* Colors */}
         <section className="mb-16">
-          <h2 className="text-2xl font-semibold text-foreground mb-6">Colors</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-6">
+            Colors
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="card">
               <div className="w-full h-20 bg-background rounded-lg mb-2 border"></div>
@@ -71,13 +72,17 @@ export default function DesignSystemPage() {
 
         {/* Buttons */}
         <section className="mb-16">
-          <h2 className="text-2xl font-semibold text-foreground mb-6">Buttons</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-6">
+            Buttons
+          </h2>
           <div className="card">
             <div className="flex flex-wrap gap-4">
               <button className="btn-primary">Primary Button</button>
               <button className="btn-secondary">Secondary Button</button>
               <button className="btn-ghost">Ghost Button</button>
-              <button className="btn-primary" disabled>Disabled</button>
+              <button className="btn-primary" disabled>
+                Disabled
+              </button>
             </div>
           </div>
         </section>
@@ -89,19 +94,22 @@ export default function DesignSystemPage() {
             <div className="card">
               <h3 className="font-semibold mb-2">Card Title</h3>
               <p className="text-sm text-foreground/60">
-                This is a card component with default styling. It includes padding, rounded corners, and a subtle border.
+                This is a card component with default styling. It includes
+                padding, rounded corners, and a subtle border.
               </p>
             </div>
             <div className="card">
               <h3 className="font-semibold mb-2">Card with Shadow</h3>
               <p className="text-sm text-foreground/60">
-                Cards can be enhanced with shadows for depth and visual hierarchy.
+                Cards can be enhanced with shadows for depth and visual
+                hierarchy.
               </p>
             </div>
             <div className="card shadow-soft">
               <h3 className="font-semibold mb-2">Soft Shadow</h3>
               <p className="text-sm text-foreground/60">
-                This card uses the soft shadow utility for a gentle elevation effect.
+                This card uses the soft shadow utility for a gentle elevation
+                effect.
               </p>
             </div>
           </div>
@@ -121,34 +129,54 @@ export default function DesignSystemPage() {
 
         {/* Typography */}
         <section className="mb-16">
-          <h2 className="text-2xl font-semibold text-foreground mb-6">Typography</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-6">
+            Typography
+          </h2>
           <div className="card space-y-4">
             <div>
               <h1 className="text-4xl font-bold text-foreground">Heading 1</h1>
-              <p className="text-xs text-foreground/60 mt-1">text-4xl font-bold</p>
+              <p className="text-xs text-foreground/60 mt-1">
+                text-4xl font-bold
+              </p>
             </div>
             <div>
-              <h2 className="text-3xl font-semibold text-foreground">Heading 2</h2>
-              <p className="text-xs text-foreground/60 mt-1">text-3xl font-semibold</p>
+              <h2 className="text-3xl font-semibold text-foreground">
+                Heading 2
+              </h2>
+              <p className="text-xs text-foreground/60 mt-1">
+                text-3xl font-semibold
+              </p>
             </div>
             <div>
-              <h3 className="text-2xl font-semibold text-foreground">Heading 3</h3>
-              <p className="text-xs text-foreground/60 mt-1">text-2xl font-semibold</p>
+              <h3 className="text-2xl font-semibold text-foreground">
+                Heading 3
+              </h3>
+              <p className="text-xs text-foreground/60 mt-1">
+                text-2xl font-semibold
+              </p>
             </div>
             <div>
-              <p className="text-base text-foreground">Body text - Regular paragraph text with default styling.</p>
+              <p className="text-base text-foreground">
+                Body text - Regular paragraph text with default styling.
+              </p>
               <p className="text-xs text-foreground/60 mt-1">text-base</p>
             </div>
             <div>
-              <p className="text-sm text-foreground/60">Small text - Used for captions and secondary information.</p>
-              <p className="text-xs text-foreground/60 mt-1">text-sm text-foreground/60</p>
+              <p className="text-sm text-foreground/60">
+                Small text - Used for captions and secondary information.
+              </p>
+              <p className="text-xs text-foreground/60 mt-1">
+                text-sm text-foreground/60
+              </p>
             </div>
           </div>
         </section>
 
         {/* Border Radius */}
         <section className="mb-16">
-          <h2 className="text-2xl font-semibold text-foreground mb-6">Border Radius</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-6">
+            Border Radius
+          </h2>
           <div className="card">
             <div className="grid grid-cols-4 gap-4">
               <div className="text-center">
@@ -173,7 +201,9 @@ export default function DesignSystemPage() {
 
         {/* Spacing */}
         <section className="mb-16">
-          <h2 className="text-2xl font-semibold text-foreground mb-6">Spacing</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-6">
+            Spacing
+          </h2>
           <div className="card">
             <div className="space-y-4">
               <div className="flex items-center gap-4">
@@ -199,4 +229,3 @@ export default function DesignSystemPage() {
     </div>
   );
 }
-
