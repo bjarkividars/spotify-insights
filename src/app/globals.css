@@ -250,7 +250,7 @@
 
   .animate-gradient-slide {
     background-size: 300% 100%;
-    animation: gradient-slide 1s ease-out 0.3s forwards;
+    animation: gradient-slide 1s ease-out 1.3s forwards;
     background-position: 0% 50%;
   }
 }
