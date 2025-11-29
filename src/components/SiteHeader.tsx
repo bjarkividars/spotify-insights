@@ -56,8 +56,8 @@ export function SiteHeader() {
           >
             {/* Sliding indicator */}
             <div
-              className={`absolute top-1 bottom-1 bg-background rounded-xl shadow-sm ${
-                hasInitialized ? "transition-all duration-300 ease-out" : ""
+              className={`absolute top-1 bottom-1 bg-background rounded-xl shadow-sm transition-all duration-300 ease-out ${
+                hasInitialized ? "opacity-100" : "opacity-0"
               }`}
               style={{
                 left: indicator.left,
