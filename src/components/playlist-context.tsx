@@ -10,6 +10,8 @@ type StreamEvent =
   | { type: "track"; track: PlaylistTrack; index: number }
   | { type: "error"; message: string };
 
+type GhostRect = { top: number; left: number; width: number; height: number } | null;
+
 type PlaylistContextValue = {
   input: string;
   setInput: (value: string) => void;
@@ -24,6 +26,8 @@ type PlaylistContextValue = {
   saveSuccessUrl: string | null;
   overlayVisible: boolean;
   statusMessage: string | undefined;
+  ghostRect: GhostRect;
+  setGhostRef: (el: HTMLDivElement | null) => void;
   startGeneration: (value: string) => Promise<void>;
   reset: () => void;
   saveToSpotify: () => Promise<void>;
@@ -42,9 +46,50 @@ export function PlaylistGenerationProvider({ children }: { children: React.React
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccessUrl, setSaveSuccessUrl] = useState<string | null>(null);
+  const [ghostRect, setGhostRect] = useState<GhostRect>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const runIdRef = useRef(0);
+  const ghostElRef = useRef<HTMLDivElement | null>(null);
+
+  const updateGhostRect = useCallback(() => {
+    if (!ghostElRef.current) {
+      setGhostRect(null);
+      return;
+    }
+    const rect = ghostElRef.current.getBoundingClientRect();
+    setGhostRect({
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+    });
+  }, []);
+
+  const setGhostRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      ghostElRef.current = el;
+      updateGhostRect();
+    },
+    [updateGhostRect]
+  );
+
+  // Keep ghost rect updated on resize/scroll
+  useEffect(() => {
+    if (!ghostElRef.current) return;
+
+    const observer = new ResizeObserver(updateGhostRect);
+    observer.observe(ghostElRef.current);
+
+    window.addEventListener("scroll", updateGhostRect, { passive: true });
+    window.addEventListener("resize", updateGhostRect, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", updateGhostRect);
+      window.removeEventListener("resize", updateGhostRect);
+    };
+  }, [updateGhostRect]);
 
   const reset = useCallback(() => {
     abortRef.current?.abort();
@@ -195,6 +240,8 @@ export function PlaylistGenerationProvider({ children }: { children: React.React
     saveSuccessUrl,
     overlayVisible,
     statusMessage,
+    ghostRect,
+    setGhostRef,
     startGeneration,
     reset,
     saveToSpotify,

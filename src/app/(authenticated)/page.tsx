@@ -2,6 +2,8 @@
 
 import { ArrowRight, Music } from "lucide-react";
 import { usePlaylistGeneration } from "@/components/playlist-context";
+import { PlaylistInputGhost } from "@/components/PlaylistInputGhost";
+import { CSSProperties } from "react";
 
 const SUGGESTIONS = [
   "Late night drive",
@@ -28,7 +30,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col items-center flex-1 max-w-4xl mx-auto w-full pt-58 px-4 -mb-28">
+    <div className="flex flex-col items-center justify-center flex-1 max-w-4xl mx-auto w-full px-4">
       {/* Title and description */}
       <div className="text-center mb-8 space-y-3 px-2">
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
@@ -42,29 +44,34 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Spacer for the floating input bar */}
-      <div className="h-16 w-full" />
+      {/* Ghost element for input positioning */}
+      <PlaylistInputGhost />
 
       {/* Suggestions with staggered animation */}
       {showSuggestions && (
-        <div className="mt-8 flex flex-wrap justify-center gap-2 w-190 max-w-full">
-          {SUGGESTIONS.map((suggestion, index) => (
-            <button
-              key={suggestion}
-              onClick={() => handleSuggestionClick(suggestion)}
-              disabled={isStreaming}
-              className="group cursor-pointer text-sm text-foreground/70 hover:text-foreground hover:bg-muted/50 py-2 px-4 rounded-full transition-colors border border-border/50 hover:border-border flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed animate-fade-in-up opacity-0"
-              style={{
-                animationDelay: `${500 + index * 75}ms`,
-                animationFillMode: "forwards",
-              }}
-            >
-              <span className="translate-x-2 group-hover:translate-x-0 transition-transform duration-200">
-                {suggestion}
-              </span>
-              <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-            </button>
-          ))}
+        <div
+          className=" w-full sm:mt-4 relative fade-top fade-bottom"
+          style={{ "--fade-size": "16px" } as CSSProperties}
+        >
+          <div className=" flex flex-wrap justify-center gap-2 w-190 max-w-full max-h-[130px] h-full overflow-y-auto py-4 scrollbar-hide">
+            {SUGGESTIONS.map((suggestion, index) => (
+              <button
+                key={suggestion}
+                onClick={() => handleSuggestionClick(suggestion)}
+                disabled={isStreaming}
+                className="group cursor-pointer text-sm text-foreground/70 hover:text-foreground hover:bg-muted/50 py-2 px-4 rounded-full transition-colors border border-border/50 hover:border-border flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed animate-fade-in-up opacity-0 sm:w-auto w-full justify-between"
+                style={{
+                  animationDelay: `${500 + index * 75}ms`,
+                  animationFillMode: "forwards",
+                }}
+              >
+                <span className="sm:translate-x-2 group-hover:translate-x-0 transition-transform duration-200">
+                  {suggestion}
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 sm:opacity-0 sm:-translate-x-1 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 transition-all " />
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

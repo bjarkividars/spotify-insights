@@ -21,6 +21,7 @@ export function GlobalPlaylistInput() {
     statusMessage,
     startGeneration,
     showSuggestions,
+    ghostRect,
   } = usePlaylistGeneration();
   const [isActive, setIsActive] = useState(false);
   const [placeholder, setPlaceholder] = useState(DESKTOP_PLACEHOLDER);
@@ -65,22 +66,28 @@ export function GlobalPlaylistInput() {
     ? "transition-all duration-350 ease-out"
     : "";
 
+  // Position: use ghost rect when on home page, else fixed bottom position
+  const useGhostPosition = isHomePage && ghostRect !== null;
+
   // Calculate input bar width based on state and page
-  const inputWidth = isHomePage
-    ? "min(96vw, 700px)"
+  // When on home page with ghost, use ghost width for perfect alignment
+  const inputWidth = useGhostPosition
+    ? ghostRect.width
     : shouldExpand
-    ? "min(96vw, 700px)"
+    ? "min(96vw, 760px)"
     : "clamp(260px, 50vw, 420px)";
 
   return (
     <div
       className={`fixed left-0 right-0 z-40 pointer-events-none ${transitionClasses}`}
-      style={{
-        top: "50%",
-        transform: isHomePage
-          ? "translateY(-50%)"
-          : "translateY(calc(50vh - 70px))",
-      }}
+      style={
+        useGhostPosition
+          ? { top: ghostRect.top }
+          : {
+              top: "50%",
+              transform: "translateY(calc(50vh - 70px))",
+            }
+      }
     >
       <div className="flex justify-center px-4">
         <div
