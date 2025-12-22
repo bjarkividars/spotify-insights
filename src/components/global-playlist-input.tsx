@@ -8,11 +8,43 @@ import { TurntableSpinner } from "./TurntableSpinner";
 const DESKTOP_PLACEHOLDER = "Tell us the mood you want...";
 const MOBILE_PLACEHOLDER = "Music for...";
 
+/**
+ * Hook to track visual viewport changes (handles mobile keyboard)
+ * Returns the keyboard offset - how much to move the input up when keyboard is visible
+ */
+function useKeyboardOffset() {
+  const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const update = () => {
+      // Calculate the difference between layout viewport and visual viewport
+      // This tells us how much the keyboard (or other UI) is covering
+      const keyboardHeight = window.innerHeight - vv.height - vv.offsetTop;
+      setOffset(Math.max(0, keyboardHeight));
+    };
+
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
+  return offset;
+}
+
 export function GlobalPlaylistInput() {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
   const hasInitialized = useRef(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const keyboardOffset = useKeyboardOffset();
 
   const {
     input,
@@ -25,6 +57,15 @@ export function GlobalPlaylistInput() {
   } = usePlaylistGeneration();
   const [isActive, setIsActive] = useState(false);
   const [placeholder, setPlaceholder] = useState(DESKTOP_PLACEHOLDER);
+
+  // Detect mobile
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     if (!hasInitialized.current) {
@@ -66,6 +107,12 @@ export function GlobalPlaylistInput() {
     ? "transition-all duration-350 ease-out"
     : "";
 
+  // On mobile + home page, the input is rendered inline by PlaylistInputGhost
+  // So we don't render the floating version
+  if (isMobile && isHomePage) {
+    return null;
+  }
+
   // Position: use ghost rect when on home page, else fixed bottom position
   const useGhostPosition = isHomePage && ghostRect !== null;
 
@@ -77,17 +124,31 @@ export function GlobalPlaylistInput() {
     ? "min(96vw, 760px)"
     : "clamp(260px, 50vw, 420px)";
 
+  // Calculate position styles
+  // On home page: position at ghost rect
+  // Elsewhere: fixed to bottom, but move up when keyboard is visible
+  const getPositionStyles = (): React.CSSProperties => {
+    if (useGhostPosition) {
+      return {
+        top: ghostRect.top,
+        willChange: "top, width",
+      };
+    }
+
+    // Use bottom positioning with transform for keyboard offset
+    // This keeps the base position stable while allowing smooth keyboard animation
+    return {
+      bottom: 20,
+      // Move up by keyboard offset when keyboard is visible
+      transform: keyboardOffset > 0 ? `translateY(-${keyboardOffset}px)` : undefined,
+      willChange: "transform",
+    };
+  };
+
   return (
     <div
       className={`fixed left-0 right-0 z-40 pointer-events-none ${transitionClasses}`}
-      style={
-        useGhostPosition
-          ? { top: ghostRect.top }
-          : {
-              top: "50%",
-              transform: "translateY(calc(50vh - 70px))",
-            }
-      }
+      style={getPositionStyles()}
     >
       <div className="flex justify-center px-4">
         <div

@@ -50,10 +50,10 @@ export default function HomePage() {
       {/* Suggestions with staggered animation */}
       {showSuggestions && (
         <div
-          className=" w-full sm:mt-4 relative fade-top fade-bottom"
+          className=" w-full mt-2 sm:mt-4 relative fade-top fade-bottom"
           style={{ "--fade-size": "16px" } as CSSProperties}
         >
-          <div className=" flex flex-wrap justify-center gap-2 w-190 max-w-full max-h-[130px] h-full overflow-y-auto py-4 scrollbar-hide">
+          <div className=" flex flex-wrap justify-center gap-2 w-190 max-w-full max-h-[30vh] sm:max-h-[130px] h-full overflow-y-auto py-4 scrollbar-hide">
             {SUGGESTIONS.map((suggestion, index) => (
               <button
                 key={suggestion}
