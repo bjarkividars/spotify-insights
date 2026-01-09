@@ -53,7 +53,7 @@ export default function HomePage() {
           className=" w-full mt-2 sm:mt-4 relative fade-top fade-bottom"
           style={{ "--fade-size": "16px" } as CSSProperties}
         >
-          <div className=" flex flex-wrap justify-center gap-2 w-190 max-w-full max-h-[30vh] sm:max-h-[130px] h-full overflow-y-auto py-4 scrollbar-hide">
+          <div className=" flex flex-wrap justify-center items-center gap-2 max-w-full max-h-[30vh] sm:max-h-[130px] h-full overflow-y-auto py-4 scrollbar-hide">
             {SUGGESTIONS.map((suggestion, index) => (
               <button
                 key={suggestion}
